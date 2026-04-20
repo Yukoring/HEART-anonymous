@@ -310,7 +310,9 @@ class TaskAllocator:
 
             self.latest_capacities = {a.value: pool.capacities.get(a, 0) for a in AgentType}
         else:
-            # 2b) Sequential budget: fill in order until budget runs out (same as TypeBased)
+            # 2b) Random budget: randomly pick subtasks until budget exceeded
+            import random
+
             used_tokens = 0
             for agent_id, count in (inflight or {}).items():
                 cost = max(1, int(token_costs.get(agent_id, 1)))
@@ -321,9 +323,10 @@ class TaskAllocator:
             capacity_count: Dict[str, int] = {}
             budget_used = 0
 
-            sorted_qs = sorted(questions, key=lambda x: getattr(x, "priority", 99))
+            shuffled_qs = list(questions)
+            random.shuffle(shuffled_qs)
             any_allocated = False
-            for q in sorted_qs:
+            for q in shuffled_qs:
                 agent = task_assignments[q.question_id]
                 agent_str = agent.value
                 cost = max(1, int(token_costs.get(agent, 1)))
@@ -334,18 +337,21 @@ class TaskAllocator:
                     capacity_count[agent_str] = capacity_count.get(agent_str, 0) + 1
                     any_allocated = True
                 else:
-                    final_alloc[q.question_id] = ""  # Deferred to next round
+                    # Budget exceeded — stop immediately, defer all remaining
+                    for remaining_q in shuffled_qs:
+                        if remaining_q.question_id not in final_alloc:
+                            final_alloc[remaining_q.question_id] = ""
+                    break
 
             # Safety: if nothing was allocated AND all agent costs exceed max budget,
             # force allocate first task to prevent infinite loop.
-            # (If costs just exceed remaining, normal defer is fine — next round will have full budget)
-            if not any_allocated and sorted_qs:
+            if not any_allocated and shuffled_qs:
                 min_cost = min(
                     max(1, int(token_costs.get(task_assignments[q.question_id], 1)))
-                    for q in sorted_qs
+                    for q in shuffled_qs
                 )
                 if min_cost > self.max_token_sum:
-                    q = sorted_qs[0]
+                    q = shuffled_qs[0]
                     agent = task_assignments[q.question_id]
                     final_alloc[q.question_id] = agent.value
                     capacity_count[agent.value] = capacity_count.get(agent.value, 0) + 1

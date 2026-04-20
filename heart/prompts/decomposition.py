@@ -116,7 +116,8 @@ def get_decompose_multi_robot_prompt() -> str:
    - Which subtasks can be done simultaneously by different robots?
    - Are there dependencies between subtasks that affect robot coordination?
 
-3. **Robot-Specific Capability Questions**: For EACH robot type, ask:
+3. **Robot-Specific Questions**: For EACH robot, ask:
+   - What room is this robot currently in? (MUST ask for EVERY robot — not just one)
    - What actions can this specific robot perform based on its URDF?
    - What locations can this robot reach given its mobility type?
    - What sensing capabilities does this robot have for the task?
