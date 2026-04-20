@@ -1,0 +1,1579 @@
+{
+  "Beechwood": {
+    "metadata": {
+      "function": "residential",
+      "floors": 2,
+      "floor_area": 52.940107333312106,
+      "gibson_split": "tiny"
+    },
+    "rooms": {
+      "bathroom_1": {
+        "location": [
+          -2.64407,
+          3.1726099999999997,
+          1.157961
+        ],
+        "size": [
+          2.0274,
+          2.63428,
+          2.3852580000000003
+        ],
+        "floor_number": "A",
+        "neighbor": [
+          "home_office_11",
+          "lobby_14",
+          "staircase_16",
+          "utility_room_18",
+          "corridor_8"
+        ],
+        "items": {
+          "sink_51": {
+            "location": [
+              -3.01,
+              4.05,
+              0.45
+            ],
+            "size": [
+              1.2600000000000002,
+              0.48,
+              0.9
+            ],
+            "affordance": [
+              "empty_to_sink",
+              "fill_from_sink",
+              "place_in"
+            ]
+          },
+          "toilet_53": {
+            "location": [
+              -2.025,
+              3.925,
+              0.4
+            ],
+            "size": [
+              0.5099999999999998,
+              0.73,
+              0.8
+            ],
+            "affordance": [
+              "clean",
+              "flush"
+            ]
+          }
+        }
+      },
+      "corridor_8": {
+        "location": [
+          -2.608525,
+          0.4775750000000001,
+          1.1663949999999998
+        ],
+        "size": [
+          2.98659,
+          4.22923,
+          2.36339
+        ],
+        "floor_number": "A",
+        "neighbor": [
+          "bathroom_1",
+          "home_office_11",
+          "living_room_13",
+          "staircase_16",
+          "utility_room_18"
+        ],
+        "items": {}
+      },
+      "dining_room_10": {
+        "location": [
+          -9.19996,
+          -1.0966399999999998,
+          1.1632514999999999
+        ],
+        "size": [
+          3.8484800000000003,
+          4.1661,
+          2.366217
+        ],
+        "floor_number": "A",
+        "neighbor": [
+          "kitchen_12",
+          "staircase_16"
+        ],
+        "items": {
+          "table_16": {
+            "location": [
+              -9.105,
+              -1.0,
+              0.3775
+            ],
+            "size": [
+              1.0299999999999994,
+              2.04,
+              0.745
+            ],
+            "affordance": [
+              "place_on",
+              "clean"
+            ]
+          },
+          "floor_lamp_23": {
+            "location": [
+              -10.7,
+              0.36,
+              0.83
+            ],
+            "size": [
+              0.41999999999999993,
+              0.41999999999999993,
+              1.66
+            ],
+            "affordance": [
+              "turn_on",
+              "turn_off"
+            ],
+            "state": [
+              "turned_on"
+            ]
+          },
+          "floor_lamp_24": {
+            "location": [
+              -7.79,
+              0.5449999999999999,
+              0.7
+            ],
+            "size": [
+              0.41999999999999993,
+              0.37,
+              1.4
+            ],
+            "affordance": [
+              "turn_on",
+              "turn_off"
+            ],
+            "state": [
+              "turned_off"
+            ]
+          },
+          "bowl_117": {
+            "location": [
+              -8.969999897498937,
+              -1.0600009793293486,
+              0.8333362165898317
+            ],
+            "size": [
+              0.09,
+              0.09,
+              0.04
+            ],
+            "affordance": [
+              "pick",
+              "place_in",
+              "place_on",
+              "clean"
+            ],
+            "state": [
+              "empty"
+            ],
+            "parent": [
+              "table_16"
+            ],
+            "relation": [
+              "on"
+            ]
+          }
+        }
+      },
+      "home_office_11": {
+        "location": [
+          -0.17086999999999986,
+          0.10506000000000015,
+          1.1783815000000002
+        ],
+        "size": [
+          3.8574200000000003,
+          3.0424800000000003,
+          2.3847570000000005
+        ],
+        "floor_number": "A",
+        "neighbor": [
+          "bathroom_1",
+          "living_room_13",
+          "utility_room_18",
+          "corridor_8"
+        ],
+        "items": {
+          "swivel_chair_0": {
+            "location": [
+              0.695,
+              0.565,
+              0.45
+            ],
+            "size": [
+              0.6590555157830476,
+              0.6643872757388226,
+              0.9
+            ],
+            "affordance": [
+              "clean",
+              "place_on"
+            ]
+          },
+          "bottom_cabinet_35": {
+            "location": [
+              0.0050000000000000044,
+              -1.155,
+              0.35
+            ],
+            "size": [
+              0.75,
+              0.43000000000000016,
+              0.7
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in"
+            ],
+            "state": [
+              "closed"
+            ]
+          },
+          "shelf_36": {
+            "location": [
+              -1.8975,
+              -0.7699999999999999,
+              1.2
+            ],
+            "size": [
+              0.375,
+              1.24,
+              2.4
+            ],
+            "affordance": [
+              "place_on"
+            ]
+          },
+          "table_37": {
+            "location": [
+              1.3599999999999999,
+              0.185,
+              0.35
+            ],
+            "size": [
+              0.6114502642268824,
+              1.1207892151561554,
+              0.7
+            ],
+            "affordance": [
+              "place_on",
+              "clean"
+            ]
+          },
+          "table_38": {
+            "location": [
+              0.395,
+              1.31,
+              0.35
+            ],
+            "size": [
+              1.31,
+              0.6000000000000001,
+              0.7
+            ],
+            "affordance": [
+              "place_on",
+              "clean"
+            ]
+          },
+          "bottom_cabinet_39": {
+            "location": [
+              1.3581138349247033,
+              -0.7871000227418528,
+              0.35
+            ],
+            "size": [
+              0.6087024782486128,
+              0.7857999545162943,
+              0.7
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in"
+            ],
+            "state": [
+              "opened"
+            ]
+          },
+          "table_41": {
+            "location": [
+              1.365,
+              1.1800000000000002,
+              0.35
+            ],
+            "size": [
+              0.6099999999999999,
+              0.8400000000000001,
+              0.7
+            ],
+            "affordance": [
+              "place_on",
+              "clean"
+            ]
+          },
+          "pen_121": {
+            "location": [
+              1.4539164539253788,
+              0.13748922859981502,
+              0.7072979643709814
+            ],
+            "size": [
+              0.016,
+              0.135,
+              0.016
+            ],
+            "affordance": [
+              "pick",
+              "place_on",
+              "place_in"
+            ],
+            "parent": [
+              "table_41"
+            ],
+            "relation": [
+              "on"
+            ]
+          }
+        }
+      },
+      "kitchen_12": {
+        "location": [
+          -5.3843749999999995,
+          -4.115965,
+          1.1871730000000003
+        ],
+        "size": [
+          5.51159,
+          5.3351299999999995,
+          2.4101540000000004
+        ],
+        "floor_number": "A",
+        "neighbor": [
+          "dining_room_10",
+          "living_room_13",
+          "staircase_16"
+        ],
+        "items": {
+          "table_7": {
+            "location": [
+              -3.395,
+              -5.57,
+              0.375
+            ],
+            "size": [
+              1.37,
+              0.7599999999999998,
+              0.75
+            ],
+            "affordance": [
+              "place_on",
+              "clean"
+            ]
+          },
+          "chest_8": {
+            "location": [
+              -5.234999999999999,
+              -6.52,
+              0.15
+            ],
+            "size": [
+              0.5699999999999994,
+              0.3199999999999994,
+              0.3
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in"
+            ],
+            "state": [
+              "opened"
+            ]
+          },
+          "shelf_9": {
+            "location": [
+              -5.403351382506999,
+              -5.92578353860732,
+              0.4
+            ],
+            "size": [
+              0.399434090354748,
+              0.6921126397611514,
+              0.8
+            ],
+            "affordance": [
+              "place_on"
+            ]
+          },
+          "bottom_cabinet_no_top_54": {
+            "location": [
+              -5.0,
+              -1.81,
+              0.425
+            ],
+            "size": [
+              1.0199999999999996,
+              0.5800000000000001,
+              0.85
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in"
+            ],
+            "state": [
+              "closed"
+            ]
+          },
+          "bottom_cabinet_no_top_55": {
+            "location": [
+              -4.22,
+              -1.81,
+              0.425
+            ],
+            "size": [
+              0.49999999999999956,
+              0.5800000000000001,
+              0.85
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in"
+            ],
+            "state": [
+              "closed"
+            ]
+          },
+          "countertop_56": {
+            "location": [
+              -4.72,
+              -1.8,
+              0.86005
+            ],
+            "size": [
+              1.5799999999999996,
+              0.6000000000000001,
+              0.01990000000000003
+            ],
+            "affordance": [
+              "place_on"
+            ]
+          },
+          "fridge_57": {
+            "location": [
+              -6.85,
+              -1.85,
+              0.875
+            ],
+            "size": [
+              0.9400000000000004,
+              0.6399999999999999,
+              1.75
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in",
+              "turn_on",
+              "turn_off"
+            ],
+            "state": [
+              "opened",
+              "turned_off"
+            ]
+          },
+          "bottom_cabinet_58": {
+            "location": [
+              -5.945,
+              -1.8250000000000002,
+              0.15
+            ],
+            "size": [
+              0.8300000000000001,
+              0.5900000000000001,
+              0.3
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in"
+            ],
+            "state": [
+              "closed"
+            ]
+          },
+          "oven_59": {
+            "location": [
+              -5.945,
+              -1.8250000000000002,
+              0.8250500000000001
+            ],
+            "size": [
+              0.8300000000000001,
+              0.5900000000000001,
+              1.0499
+            ],
+            "affordance": [
+              "clean",
+              "close",
+              "open",
+              "place_in",
+              "turn_off",
+              "turn_on"
+            ],
+            "state": [
+              "closed",
+              "turned_off"
+            ]
+          },
+          "microwave_60": {
+            "location": [
+              -5.945,
+              -1.8250000000000002,
+              1.5500500000000001
+            ],
+            "size": [
+              0.8300000000000001,
+              0.5900000000000001,
+              0.3998999999999999
+            ],
+            "affordance": [
+              "clean",
+              "close",
+              "open",
+              "place_in",
+              "turn_off",
+              "turn_on"
+            ],
+            "state": [
+              "open",
+              "turned_off"
+            ]
+          },
+          "shelf_61": {
+            "location": [
+              -6.43,
+              -1.8900000000000001,
+              2.07505
+            ],
+            "size": [
+              1.7999999999999998,
+              0.4600000000000002,
+              0.6498999999999999
+            ],
+            "affordance": [
+              "place_on"
+            ]
+          },
+          "top_cabinet_62": {
+            "location": [
+              -5.0,
+              -1.67,
+              1.875
+            ],
+            "size": [
+              1.0199999999999996,
+              0.3400000000000001,
+              1.0499999999999998
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in"
+            ],
+            "state": [
+              "closed"
+            ]
+          },
+          "top_cabinet_63": {
+            "location": [
+              -4.22,
+              -1.665,
+              1.875
+            ],
+            "size": [
+              0.49999999999999956,
+              0.3500000000000001,
+              1.0499999999999998
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in"
+            ],
+            "state": [
+              "closed"
+            ]
+          },
+          "sink_64": {
+            "location": [
+              -7.37,
+              -5.335,
+              0.45
+            ],
+            "size": [
+              1.02382239702135,
+              1.0179461593352492,
+              0.9
+            ],
+            "affordance": [
+              "empty_to_sink",
+              "fill_from_sink",
+              "place_in"
+            ]
+          },
+          "countertop_65": {
+            "location": [
+              -7.879912252184373,
+              -4.860635202620724,
+              0.86005
+            ],
+            "size": [
+              0.7989242987779352,
+              0.8012704052414472,
+              0.01990000000000003
+            ],
+            "affordance": [
+              "place_on"
+            ]
+          },
+          "countertop_66": {
+            "location": [
+              -7.755000000000001,
+              -4.035,
+              0.86005
+            ],
+            "size": [
+              0.6100000000000003,
+              1.5499999999999998,
+              0.01990000000000003
+            ],
+            "affordance": [
+              "place_on"
+            ]
+          },
+          "countertop_67": {
+            "location": [
+              -6.24,
+              -5.734999999999999,
+              0.86005
+            ],
+            "size": [
+              1.2599999999999998,
+              0.6499999999999995,
+              0.01990000000000003
+            ],
+            "affordance": [
+              "place_on"
+            ]
+          },
+          "countertop_68": {
+            "location": [
+              -6.89747798190178,
+              -5.78791520441555,
+              0.86005
+            ],
+            "size": [
+              0.7549559638035612,
+              0.760038434443647,
+              0.01990000000000003
+            ],
+            "affordance": [
+              "place_on"
+            ]
+          },
+          "countertop_69": {
+            "location": [
+              -7.801064934779536,
+              -5.850350766320566,
+              0.86005
+            ],
+            "size": [
+              1.520828506952376,
+              1.479298467358868,
+              0.01990000000000003
+            ],
+            "affordance": [
+              "place_on"
+            ]
+          },
+          "bottom_cabinet_no_top_70": {
+            "location": [
+              -7.765000000000001,
+              -3.6399999999999997,
+              0.425
+            ],
+            "size": [
+              0.6111937161997547,
+              0.7399999999999998,
+              0.85
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in"
+            ],
+            "state": [
+              "closed"
+            ]
+          },
+          "bottom_cabinet_no_top_71": {
+            "location": [
+              -7.764832476615052,
+              -4.424876984492747,
+              0.425
+            ],
+            "size": [
+              0.6109397772082268,
+              0.7902460310145063,
+              0.85
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in"
+            ],
+            "state": [
+              "closed"
+            ]
+          },
+          "dishwasher_72": {
+            "location": [
+              -5.985,
+              -5.734999999999999,
+              0.425
+            ],
+            "size": [
+              0.6699999999999999,
+              0.6299999999999999,
+              0.85
+            ],
+            "affordance": [
+              "clean",
+              "open",
+              "close",
+              "place_in",
+              "turn_on",
+              "turn_off"
+            ],
+            "state": [
+              "closed",
+              "turned_off"
+            ]
+          },
+          "bottom_cabinet_no_top_73": {
+            "location": [
+              -6.595,
+              -5.734999999999999,
+              0.425
+            ],
+            "size": [
+              0.5099999999999998,
+              0.6499999999999995,
+              0.85
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in"
+            ],
+            "state": [
+              "closed"
+            ]
+          },
+          "top_cabinet_74": {
+            "location": [
+              -6.255,
+              -5.875,
+              1.875
+            ],
+            "size": [
+              1.1899999999999995,
+              0.3699999999999992,
+              1.0499999999999998
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in"
+            ],
+            "state": [
+              "closed"
+            ]
+          },
+          "top_cabinet_75": {
+            "location": [
+              -7.8975,
+              -3.6675,
+              1.875
+            ],
+            "size": [
+              0.3349999999999991,
+              0.8449999999999998,
+              1.0499999999999998
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in"
+            ],
+            "state": [
+              "closed"
+            ]
+          },
+          "countertop_76": {
+            "location": [
+              -5.615,
+              -3.825,
+              0.865
+            ],
+            "size": [
+              1.8499999999999996,
+              0.9100000000000001,
+              0.010000000000000009
+            ],
+            "affordance": [
+              "place_on"
+            ]
+          },
+          "burner_77": {
+            "location": [
+              -5.755,
+              -3.98,
+              0.905
+            ],
+            "size": [
+              0.8900000000000006,
+              0.5599999999999996,
+              0.06999999999999995
+            ],
+            "affordance": [
+              "turn_off",
+              "turn_on"
+            ],
+            "state": [
+              "turned_on"
+            ]
+          },
+          "bottom_cabinet_no_top_78": {
+            "location": [
+              -4.985,
+              -3.96,
+              0.425
+            ],
+            "size": [
+              0.5899999999999999,
+              0.5999999999999996,
+              0.85
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in"
+            ],
+            "state": [
+              "closed"
+            ]
+          },
+          "bottom_cabinet_no_top_79": {
+            "location": [
+              -6.380000000000001,
+              -3.96,
+              0.425
+            ],
+            "size": [
+              0.2999999999999998,
+              0.5999999999999996,
+              0.85
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in"
+            ],
+            "state": [
+              "closed"
+            ]
+          },
+          "bottom_cabinet_no_top_90": {
+            "location": [
+              -5.755,
+              -3.98,
+              0.425
+            ],
+            "size": [
+              0.8900000000000006,
+              0.5599999999999996,
+              0.85
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in"
+            ],
+            "state": [
+              "closed"
+            ]
+          },
+          "hamburger_114": {
+            "location": [
+              -3.0013207721156765,
+              -5.570099390621484,
+              0.7505815709691398
+            ],
+            "size": [
+              0.08,
+              0.08,
+              0.04
+            ],
+            "affordance": [
+              "pick",
+              "place_on",
+              "place_in"
+            ],
+            "parent": [
+              "table_7"
+            ],
+            "relation": [
+              "on"
+            ]
+          },
+          "cereal_115": {
+            "location": [
+              -3.500116543141746,
+              -5.570068981618517,
+              0.7504413732383334
+            ],
+            "size": [
+              0.05,
+              0.15,
+              0.25
+            ],
+            "affordance": [
+              "pour",
+              "pick",
+              "place_on",
+              "place_in"
+            ],
+            "parent": [
+              "table_7"
+            ],
+            "relation": [
+              "on"
+            ]
+          },
+          "salad_116": {
+            "location": [
+              -7.760044423890862,
+              -4.040077574083797,
+              0.8775529131852063
+            ],
+            "size": [
+              0.058,
+              0.031,
+              0.044
+            ],
+            "affordance": [
+              "pick",
+              "place_on",
+              "place_in"
+            ],
+            "parent": [
+              "countertop_66"
+            ],
+            "relation": [
+              "on"
+            ]
+          },
+          "milk_118": {
+            "location": [
+              -6.240000073469987,
+              -5.739999613761757,
+              0.8728213639431364
+            ],
+            "size": [
+              0.08,
+              0.08,
+              0.2
+            ],
+            "affordance": [
+              "pick",
+              "place_on",
+              "place_in",
+              "pour"
+            ],
+            "parent": [
+              "countertop_67"
+            ],
+            "relation": [
+              "on"
+            ]
+          }
+        }
+      },
+      "living_room_13": {
+        "location": [
+          -0.5029300000000001,
+          -3.7433250000000005,
+          1.0974825000000004
+        ],
+        "size": [
+          4.45508,
+          4.54655,
+          2.560895
+        ],
+        "floor_number": "A",
+        "neighbor": [
+          "home_office_11",
+          "kitchen_12",
+          "corridor_8"
+        ],
+        "items": {
+          "shelf_10": {
+            "location": [
+              -0.825,
+              -1.79,
+              0.125
+            ],
+            "size": [
+              1.65,
+              0.54,
+              0.25
+            ],
+            "affordance": [
+              "place_on"
+            ]
+          },
+          "floor_lamp_11": {
+            "location": [
+              -1.8649999999999998,
+              -1.77,
+              0.75
+            ],
+            "size": [
+              0.32999999999999985,
+              0.3799999999999999,
+              1.5
+            ],
+            "affordance": [
+              "turn_on",
+              "turn_off"
+            ],
+            "state": [
+              "turned_on"
+            ]
+          },
+          "coffee_table_12": {
+            "location": [
+              -0.98,
+              -4.4,
+              0.2
+            ],
+            "size": [
+              0.8799999999999999,
+              0.7600000000000007,
+              0.4
+            ],
+            "affordance": [
+              "place_on",
+              "clean"
+            ]
+          },
+          "table_13": {
+            "location": [
+              -2.155,
+              -3.85,
+              0.35
+            ],
+            "size": [
+              0.7099999999999997,
+              0.5200000000000005,
+              0.7
+            ],
+            "affordance": [
+              "place_on",
+              "clean"
+            ]
+          },
+          "floor_lamp_14": {
+            "location": [
+              0.42,
+              -5.755000000000001,
+              0.7
+            ],
+            "size": [
+              0.4200000000000045,
+              0.4500000000000002,
+              1.4
+            ],
+            "affordance": [
+              "turn_on",
+              "turn_off"
+            ],
+            "state": [
+              "turned_on"
+            ]
+          },
+          "bottom_cabinet_15": {
+            "location": [
+              1.4925000000000002,
+              -5.4675,
+              0.15
+            ],
+            "size": [
+              0.365,
+              1.0549999999999997,
+              0.3
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in"
+            ],
+            "state": [
+              "closed"
+            ]
+          },
+          "rail_fence_80": {
+            "location": [
+              -2.6539104605852515,
+              -4.742454853680284,
+              0.5
+            ],
+            "size": [
+              0.06782092117050276,
+              2.525154487155752,
+              1.0
+            ],
+            "affordance": [
+              "place_on",
+              "clean"
+            ]
+          },
+          "wall_mounted_tv_81": {
+            "location": [
+              -0.795,
+              -1.56,
+              1.305
+            ],
+            "size": [
+              1.07,
+              0.08000000000000007,
+              0.71
+            ],
+            "affordance": [
+              "turn_off",
+              "turn_on"
+            ],
+            "state": [
+              "turned_off"
+            ]
+          },
+          "sofa_82": {
+            "location": [
+              -1.2,
+              -5.455,
+              0.4
+            ],
+            "size": [
+              2.7600000000000002,
+              1.0700000000000003,
+              0.8
+            ],
+            "affordance": [
+              "place_on",
+              "clean"
+            ]
+          },
+          "bottom_cabinet_84": {
+            "location": [
+              1.4015116872308124,
+              -2.152078042389171,
+              0.425
+            ],
+            "size": [
+              0.536976625538375,
+              1.247669508211625,
+              0.85
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in"
+            ],
+            "state": [
+              "closed"
+            ]
+          },
+          "shelf_85": {
+            "location": [
+              1.535469859268668,
+              -2.1550868193939774,
+              1.6250499999999999
+            ],
+            "size": [
+              0.2709397185373361,
+              1.2506355632330304,
+              1.5499
+            ],
+            "affordance": [
+              "place_on"
+            ]
+          },
+          "hat_113": {
+            "location": [
+              -1.5500058816939217,
+              -5.349998383554873,
+              0.3976492065120328
+            ],
+            "size": [
+              0.23,
+              0.28,
+              0.09
+            ],
+            "affordance": [
+              "pick",
+              "place_on",
+              "place_in"
+            ]
+          },
+          "briefcase_120": {
+            "location": [
+              -0.980008661065158,
+              -4.399990057986525,
+              0.5082205075585634
+            ],
+            "size": [
+              0.3756,
+              0.396,
+              0.3456
+            ],
+            "affordance": [
+              "pick",
+              "place_on",
+              "place_in"
+            ]
+          }
+        }
+      },
+      "lobby_14": {
+        "location": [
+          -6.933929999999999,
+          3.2795495000000003,
+          2.468492
+        ],
+        "size": [
+          7.16334,
+          5.735061,
+          5.001816000000001
+        ],
+        "floor_number": "A",
+        "neighbor": [
+          "bathroom_1",
+          "staircase_16"
+        ],
+        "items": {
+          "piano_1": {
+            "location": [
+              -6.87,
+              1.245,
+              0.6
+            ],
+            "size": [
+              1.4000000000000004,
+              0.47,
+              1.2
+            ],
+            "affordance": [
+              "clean",
+              "play"
+            ]
+          },
+          "armchair_25": {
+            "location": [
+              -9.975389506260665,
+              4.94859418582125,
+              0.425
+            ],
+            "size": [
+              0.9507790125213305,
+              0.9503984460508557,
+              0.85
+            ],
+            "affordance": [
+              "fix",
+              "clean"
+            ],
+            "state": [
+              "broken"
+            ]
+          },
+          "table_28": {
+            "location": [
+              -8.245000000000001,
+              5.71,
+              0.375
+            ],
+            "size": [
+              1.6100000000000003,
+              0.7200000000000006,
+              0.75
+            ],
+            "affordance": [
+              "place_on",
+              "clean"
+            ]
+          },
+          "floor_lamp_29": {
+            "location": [
+              -6.220000000000001,
+              5.17,
+              0.88
+            ],
+            "size": [
+              0.5200000000000005,
+              0.45999999999999996,
+              1.76
+            ],
+            "affordance": [
+              "turn_on",
+              "turn_off"
+            ],
+            "state": [
+              "turned_on"
+            ]
+          },
+          "table_30": {
+            "location": [
+              -6.4,
+              4.699999999999999,
+              0.25
+            ],
+            "size": [
+              0.4628340789261136,
+              0.4314554973040048,
+              0.5
+            ],
+            "affordance": [
+              "place_on",
+              "clean"
+            ]
+          },
+          "countertop_88": {
+            "location": [
+              -10.42243042812673,
+              3.235017969596437,
+              1.3155000000000001
+            ],
+            "size": [
+              0.3048573471378031,
+              2.0099640608071265,
+              0.029000000000000137
+            ],
+            "affordance": [
+              "place_on"
+            ]
+          },
+          "jeans_112": {
+            "location": [
+              -9.858576127767373,
+              4.984321083228691,
+              0.21939085856215315
+            ],
+            "size": [
+              0.09079,
+              0.09812,
+              0.242236
+            ],
+            "affordance": [
+              "pick",
+              "place_on",
+              "place_in"
+            ],
+            "state": [
+              "dirty"
+            ]
+          },
+          "notebook_119": {
+            "location": [
+              -8.390772258046056,
+              5.711130305500663,
+              0.7741620322590844
+            ],
+            "size": [
+              0.0498,
+              0.2136,
+              0.2706
+            ],
+            "affordance": [
+              "pick",
+              "place_on",
+              "place_in"
+            ],
+            "parent": [
+              "table_28"
+            ],
+            "relation": [
+              "on"
+            ]
+          }
+        }
+      },
+      "staircase_16": {
+        "location": [
+          -5.41491,
+          -0.10923999999999978,
+          2.47127
+        ],
+        "size": [
+          4.2183600000000006,
+          2.56022,
+          4.98616
+        ],
+        "floor_number": "A",
+        "neighbor": [
+          "bathroom_1",
+          "dining_room_10",
+          "kitchen_12",
+          "lobby_14",
+          "corridor_8"
+        ],
+        "items": {}
+      },
+      "utility_room_18": {
+        "location": [
+          0.003114999999999979,
+          3.01641,
+          1.1711004999999999
+        ],
+        "size": [
+          3.41379,
+          2.5967399999999996,
+          2.3786590000000003
+        ],
+        "floor_number": "A",
+        "neighbor": [
+          "bathroom_1",
+          "home_office_11",
+          "corridor_8"
+        ],
+        "items": {
+          "sink_43": {
+            "location": [
+              -1.115,
+              4.0,
+              0.525
+            ],
+            "size": [
+              0.79,
+              0.5800000000000001,
+              1.05
+            ],
+            "affordance": [
+              "empty_to_sink",
+              "fill_from_sink",
+              "place_in"
+            ]
+          },
+          "bottom_cabinet_44": {
+            "location": [
+              -0.49,
+              4.0,
+              0.45
+            ],
+            "size": [
+              0.41999999999999993,
+              0.5800000000000001,
+              0.9
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in"
+            ],
+            "state": [
+              "closed"
+            ]
+          },
+          "top_cabinet_45": {
+            "location": [
+              -0.895,
+              4.140000000000001,
+              1.9
+            ],
+            "size": [
+              1.25,
+              0.2999999999999998,
+              1.0
+            ],
+            "affordance": [
+              "close",
+              "open",
+              "place_in"
+            ],
+            "state": [
+              "closed"
+            ]
+          },
+          "washer_47": {
+            "location": [
+              1.2148358361116924,
+              2.830222740316863,
+              0.65
+            ],
+            "size": [
+              0.9109636484945941,
+              0.6604454806337254,
+              1.3
+            ],
+            "affordance": [
+              "turn_on",
+              "turn_off",
+              "place_in",
+              "open",
+              "close"
+            ],
+            "state": [
+              "closed",
+              "turned_off"
+            ]
+          },
+          "dryer_48": {
+            "location": [
+              1.2148358361116924,
+              2.1402227403168625,
+              0.65
+            ],
+            "size": [
+              0.9109636484945941,
+              0.6604454806337254,
+              1.3
+            ],
+            "affordance": [
+              "turn_on",
+              "turn_off",
+              "place_in",
+              "open",
+              "close"
+            ],
+            "state": [
+              "opened",
+              "turned_off"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

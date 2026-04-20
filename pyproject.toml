@@ -1,0 +1,40 @@
+[project]
+name = "heart"
+version = "0.1.0"
+description = "HEART: Coordination of Heterogeneous Expert Agents for Physically Grounded Robotic Task Planning"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    # Core
+    "python-dotenv>=1.0",
+    "pydantic>=2.0",
+
+    # LangChain & LangGraph
+    "langchain-core>=0.3",
+    "langchain-openai>=0.3",
+    "langgraph>=0.6",
+
+    # LLM
+    "openai>=1.0",
+    "tiktoken>=0.7",
+
+    # ML (for allocator embedding routing)
+    "sentence-transformers>=3.0,<4.0",
+    "torch>=2.0",
+
+    # Data
+    "numpy>=2.0,<2.3",
+
+    # DELTA planner
+    "pddlgym>=0.0.7",
+    "pddlgym_planners @ git+https://github.com/ronuchit/pddlgym_planners.git",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
