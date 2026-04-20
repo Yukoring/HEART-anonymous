@@ -130,7 +130,7 @@ Results are saved to `results/` with CSV metrics, detail JSONs, and plan files.
 | Scene | Rooms | Objects | Focus | Tasks |
 |-------|-------|---------|-------|-------|
 | Beechwood_0 | 9 | 74 | Logical sequencing | 15 |
-| Benevolence_1 | 5 | 55 | Physical feasibility | 15 |
+| Benevolence_1 | 5 | 62 | Physical feasibility | 15 |
 | Merom_1 | 7 | 65 | Multi-robot coordination | 10 |
 
 **Plan validation**: Plans are validated against manually authored PDDL specifications using the [VAL plan validator](https://github.com/KCL-Planning/VAL). Ground truth PDDL files are in `data/pddl/`.
