@@ -8,7 +8,7 @@ REASONING_AGENTS = {
     "feasibility_reasoner": {"model": "gpt-4o", "temperature": 0.0},
     "constraint_reasoner": {"model": "gpt-4o", "temperature": 0.0},
     "homogeneous_reasoner": {"model": "gpt-4o", "temperature": 0.0},
-    # 3-agent ablation (merged agents)
+    # 3-agent ablation (combined-scope agents)
     "physical_reasoner": {"model": "gpt-4o", "temperature": 0.0},
     "spatial_reasoner": {"model": "gpt-4o", "temperature": 0.0},
 }

@@ -12,8 +12,8 @@ Filtering rules per agent:
 - feasibility_reasoner: Robot kinematics + object physical properties (position, size, weight)
 - constraint_reasoner: Object affordances, states, dependencies (no robot specs)
 - homogeneous_reasoner: Full unfiltered data (baseline)
-- physical_reasoner: capability + feasibility merged (3-agent ablation)
-- spatial_reasoner: environmental + path merged (3-agent ablation)
+- physical_reasoner: covers capability + feasibility (3-agent ablation)
+- spatial_reasoner: covers environmental + path (3-agent ablation)
 """
 
 from typing import Dict, Any
@@ -50,7 +50,7 @@ def filter_data_for_agent(agent_type: str, env_data: Dict[str, Any]) -> Dict[str
     elif agent_type == "constraint_reasoner":
         return _filter_for_constraint(env_data)
 
-    # 3-agent ablation (merged agents)
+    # 3-agent ablation (combined-scope agents)
     elif agent_type == "physical_reasoner":
         return _filter_for_physical(env_data)
     elif agent_type == "spatial_reasoner":
@@ -531,11 +531,11 @@ def _filter_for_synthesizer(env_data: Dict[str, Any]) -> Dict[str, Any]:
     return expert_data
 
 
-# ==================== 3-Agent Ablation (Merged Filters) ====================
+# ==================== 3-Agent Ablation (Combined-Scope Filters) ====================
 
 def _filter_for_physical(env_data: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Filter data for merged capability + feasibility reasoner.
+    Filter data for the physical reasoner (covers capability + feasibility).
     Combines: robot specs (capability) + object physical properties (feasibility).
     """
     cap_data = _filter_for_capability(env_data)
@@ -565,7 +565,7 @@ def _filter_for_physical(env_data: Dict[str, Any]) -> Dict[str, Any]:
 
 def _filter_for_spatial(env_data: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Filter data for merged environmental + path reasoner.
+    Filter data for the spatial reasoner (covers environmental + path).
     Combines: scene items/affordances (environmental) + room connectivity (path) + robot position.
     """
     env_data_filtered = _filter_for_environmental(env_data)

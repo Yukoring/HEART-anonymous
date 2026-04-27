@@ -1,6 +1,6 @@
 # Changes from Original DELTA
 
-This directory contains an adapted version of [DELTA](https://github.com/clear-nus/delta) (Licensed under AGPL-3.0) for integration with the HEART framework.
+This directory contains an adapted version of [DELTA](https://github.com/boschresearch/DELTA) (Liu et al., ICRA 2025; licensed under AGPL-3.0) for integration with the HEART framework.
 
 ## New Files (HEART additions)
 - `delta_planner.py` — Programmatic wrapper matching HEART's planner interface

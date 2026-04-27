@@ -20,7 +20,7 @@ class AgentType(str, Enum):
     PATH_REASONER = "path_reasoner"
     FEASIBILITY_REASONER = "feasibility_reasoner"
     CONSTRAINT_REASONER = "constraint_reasoner"
-    # 3-agent ablation (merged agents)
+    # 3-agent ablation (combined-scope agents)
     PHYSICAL_REASONER = "physical_reasoner"
     SPATIAL_REASONER = "spatial_reasoner"
 
@@ -187,6 +187,143 @@ class TaskType(str, Enum):
                 "- Access rules: 'BLOCKED: [item_in_cabinet] - need container open | FREE: [table_items]'"
         }
         return strategies.get(self.value, "Provide answer based on task instruction requirements")
+
+# ==================== Type Ablation Variants (response letter only) ====================
+
+class TaskType8(str, Enum):
+    """8-type variant: merge similar types"""
+    HARDWARE_ANALYSIS = "hardware_analysis"          # capability + validity
+    OBJECT_DISCOVERY = "object_discovery"
+    SCENE_UNDERSTANDING = "scene_understanding"
+    ROBOT_DISCOVERY = "robot_discovery"
+    NAVIGATION = "navigation"                        # path + route
+    PHYSICAL_FEASIBILITY = "physical_feasibility"
+    TASK_DEPENDENCY = "task_dependency"
+    ACTION_CONSTRAINTS = "action_constraints"         # sequence + contextual
+
+    @property
+    def description(self) -> str:
+        descriptions = {
+            "hardware_analysis": "Identify robot capabilities, verify robot-object-action validity, and check multi-manipulation capacity",
+            "object_discovery": "Find specific objects, their exact locations, container relationships, and affordances",
+            "scene_understanding": "Understand room-object relationships and general environment: what items are in which rooms",
+            "robot_discovery": "Determine robot's current room from its position coordinates",
+            "navigation": "Generate valid room-to-room navigation paths using neighbor connections and select the best route",
+            "physical_feasibility": "Calculate if manipulation is physically possible using exact positions and dimensions",
+            "task_dependency": "Extract action rules (prerequisites) and action dependencies from instruction",
+            "action_constraints": "Determine required action ordering and identify implicit rules from context and object states",
+        }
+        return descriptions.get(self.value, "")
+
+    @property
+    def response_strategy(self) -> str:
+        strategies = {
+            "hardware_analysis":
+                "List the robot's hardware specs (gripper count, arm count, capacity) and determine which actions are valid for which objects:\n"
+                "- 'robot_1: gripper=1, arms=1, CAPACITY=1 object | CAN pick: [apple_2, bowl_3] | CANNOT pick: [table_1-no_affordance, ball_4-too_high]'",
+            "object_discovery":
+                "Find objects with flexible queries:\n"
+                "- Specific object: 'apple_5: LOCATION: kitchen_9 (on table_3) | AFFORDANCES: [pick, place] | STATE: accessible'\n"
+                "- Object type: 'All apples: {apple_5: kitchen_9, apple_7: dining_12}'\n"
+                "- By property: 'Objects with open affordance: [cabinet_2, door_3] | Closed state: [cabinet_2, refrigerator_4]'",
+            "scene_understanding":
+                "Map spatial relationships at different granularities:\n"
+                "- Room inventory: 'kitchen_9: [sink_1, table_3, apple_5, bowl_2] | bedroom_4: [bed_1, lamp_2]'\n"
+                "- Object relations: 'ON: {apple_5: table_3, bowl_2: sink_1} | IN: {pen_4: drawer_2}'\n"
+                "- Room purposes: 'cooking: kitchen_9 | sleeping: bedroom_4 | hygiene: bathroom_3'",
+            "robot_discovery":
+                "Locate robots with flexible queries:\n"
+                "- Specific robot: 'robot_1: ROOM: kitchen_9 | POSITION: [1.2, 3.4, 0] | STATUS: idle'\n"
+                "- All robots: 'ROBOTS: {robot_1: kitchen_9, robot_2: dining_3}'\n"
+                "- By room: 'Robots in kitchen: [robot_1] | No robots in: [bedroom_2]'",
+            "navigation":
+                "Find the robot's valid paths through neighboring rooms and pick the shortest one:\n"
+                "- 'A to C: A->B->C (2 hops) vs A->D->E->C (3 hops) | OPTIMAL: A->B->C'",
+            "physical_feasibility":
+                "Check whether the robot can physically reach and manipulate each object given height, size, and weight limits:\n"
+                "- 'PICKABLE: [apple_5 (z=0.8m OK, size=0.05m OK)] | NOT_PICKABLE: [ball_2 (z=2.4m > reach), notebook_64 (too heavy)]'",
+            "task_dependency":
+                "List what must happen before each action can execute:\n"
+                "- 'DEPENDENCIES: {pick: [hand free], open_cabinet: [place held item], place_in: [container open]}'",
+            "action_constraints":
+                "Determine the required action order and identify implicit rules from object states:\n"
+                "- 'ORDER: navigate -> pick -> navigate -> place | RULES: must drop before open, closed containers need opening first'",
+        }
+        return strategies.get(self.value, "Provide answer based on task requirements")
+
+
+class TaskType5(str, Enum):
+    """5-type variant: maximally merged"""
+    HARDWARE_CHECK = "hardware_check"                # capability + validity
+    SCENE_QUERY = "scene_query"                      # object_discovery + scene_understanding
+    SPATIAL_REASONING = "spatial_reasoning"           # robot_discovery + path + route
+    FEASIBILITY_CHECK = "feasibility_check"          # physical_feasibility
+    CONSTRAINT_ANALYSIS = "constraint_analysis"      # dependency + sequence + contextual
+
+    @property
+    def description(self) -> str:
+        descriptions = {
+            "hardware_check": "Identify robot capabilities, verify robot-object-action validity, and check manipulation capacity",
+            "scene_query": "Find objects, their locations, affordances, container relationships, and understand room-object spatial layout",
+            "spatial_reasoning": "Determine robot positions, generate valid navigation paths through room connections, and optimize routes",
+            "feasibility_check": "Calculate if manipulation is physically possible using positions, dimensions, weight, and reach",
+            "constraint_analysis": "Extract action dependencies, determine required ordering, and identify implicit rules from context and object states",
+        }
+        return descriptions.get(self.value, "")
+
+    @property
+    def response_strategy(self) -> str:
+        strategies = {
+            "hardware_check":
+                "List the robot's hardware specs and determine which actions are valid for which objects:\n"
+                "- 'robot_1: gripper=1, arms=1, CAPACITY=1 object | CAN pick: [apple_2, bowl_3] | CANNOT: [table_1-no_affordance]'",
+            "scene_query":
+                "Find objects and describe the room layout:\n"
+                "- 'apple_5: kitchen_9 (on table_3), affordances=[pick, place] | kitchen_9 contains: [sink_1, table_3, apple_5]'",
+            "spatial_reasoning":
+                "Determine where each robot is and find the shortest valid path to the destination:\n"
+                "- 'robot_1 is in kitchen_9 | Path to bedroom: kitchen_9->corridor->bedroom (2 hops, shortest)'",
+            "feasibility_check":
+                "Check whether the robot can physically reach and manipulate each object given height, size, and weight limits:\n"
+                "- 'PICKABLE: [apple_5 (z=0.8m OK, size=0.05m OK)] | NOT_PICKABLE: [ball_2 (z=2.4m > reach)]'",
+            "constraint_analysis":
+                "List what must happen before each action and determine the required order considering object states:\n"
+                "- 'DEPS: {pick: [hand free], open: [drop held item]} | ORDER: navigate->pick->navigate->place | closed containers need opening first'",
+        }
+        return strategies.get(self.value, "Provide answer based on task requirements")
+
+
+# Mapping from TaskType (11) to reduced types
+TASK_TYPE_MAPPING_8 = {
+    "robot_capability_analysis": "hardware_analysis",
+    "action_validity": "hardware_analysis",
+    "object_discovery": "object_discovery",
+    "scene_understanding": "scene_understanding",
+    "robot_discovery": "robot_discovery",
+    "path_planning": "navigation",
+    "route_optimization": "navigation",
+    "physical_feasibility": "physical_feasibility",
+    "task_dependency_analysis": "task_dependency",
+    "action_sequence_constraints": "action_constraints",
+    "contextual_constraints": "action_constraints",
+}
+
+TASK_TYPE_MAPPING_5 = {
+    "robot_capability_analysis": "hardware_check",
+    "action_validity": "hardware_check",
+    "object_discovery": "scene_query",
+    "scene_understanding": "scene_query",
+    "robot_discovery": "spatial_reasoning",
+    "path_planning": "spatial_reasoning",
+    "route_optimization": "spatial_reasoning",
+    "physical_feasibility": "feasibility_check",
+    "task_dependency_analysis": "constraint_analysis",
+    "action_sequence_constraints": "constraint_analysis",
+    "contextual_constraints": "constraint_analysis",
+}
+
+# ====================================================================================
+
 
 class ReasoningQuestion(BaseModel):
     """A reasoning question generated by decomposer"""

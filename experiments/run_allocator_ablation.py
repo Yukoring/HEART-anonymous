@@ -100,12 +100,18 @@ def main():
         for iteration in range(1, args.iterations + 1):
             print(f"\n--- Iteration {iteration}/{args.iterations} ---")
 
-            # Load saved decomposition or decompose fresh (always extended for allocator ablation)
+            # Load saved decomposition or decompose fresh.
+            # NOTE: decompose_once is called ONCE per iteration and questions_dict is
+            # reused across all conditions and budgets below — this guarantees every
+            # budget within this iteration sees the SAME decomposition. To share
+            # across separate invocations (e.g., if you split budgets into different
+            # `python run_allocator_ablation.py` calls), pass --decompose-dir pointing
+            # to the first run's output dir.
             decomp = None
             if args.decompose_dir:
                 decomp = load_decomposition(Path(args.decompose_dir), scene_name, task.id, iteration)
             if decomp is None:
-                decomp = decompose_once(task.goal, env_data, AGENTS_5, extended=True)
+                decomp = decompose_once(task.goal, env_data, AGENTS_5, extended=False)
                 save_decomposition(decomp, output_dir, scene_name, task.id, iteration)
 
             questions_dict = decomp["questions_dict"]

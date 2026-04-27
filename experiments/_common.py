@@ -278,7 +278,8 @@ def extract_metrics(result: Dict, config: Dict, scene_name: str, task, iteration
         "execution_time": result.get("_total_time", 0),
         "decomposer_time": metrics.get("stage_1_decomposer", {}).get("time", 0.0),
         "allocator_time": metrics.get("stage_2_allocator", {}).get("time", 0.0),
-        "agent_time": total_agent_time,
+        "agent_time": metrics.get("stage_3_agents", {}).get("time", 0.0),  # parallel-aware wall-clock
+        "agent_cumulative_llm_time": metrics.get("stage_3_agents", {}).get("cumulative_llm_time", 0.0),  # over-counted, kept for diagnostics
         "synthesis_time": metrics.get("stage_4_synthesis", {}).get("time", 0.0),
         "planner_time": metrics.get("stage_5_planner", {}).get("time", 0.0),
         # Plan

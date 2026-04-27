@@ -153,16 +153,17 @@ class TokenBudgetPlanner:
 
 class RuleBasedTaskAllocator:
     """
-    Rule-based allocator with simple sequential budget allocation.
+    Rule-based allocator with random-shuffle budget allocation.
     Routing: fixed task type → agent mapping.
-    Budget: sequential — fills tasks in order until budget runs out.
-    No TokenBudgetPlanner (that's HEART-specific).
+    Budget: random shuffle over questions until budget is exhausted
+    (no capacity planning — baseline for isolating HEART's mechanisms).
     """
     def __init__(self,
                  max_token_sum: int = 20000,
                  verbose: bool = True):
 
         self.assigner = Rule_Based_TaskAssigner()
+        self.token_planner = TokenBudgetPlanner(max_token_sum=max_token_sum)
         self.max_token_sum = max_token_sum
         self.verbose = verbose
         self.latest_capacities: Dict[str, int] = {}
@@ -176,6 +177,8 @@ class RuleBasedTaskAllocator:
                  active_agents: Optional[List[str]] = None,
                  ) -> Dict[str, str]:
 
+        import random
+
         agent_token_estimates = agent_token_estimates or {}
         inflight_counts = inflight_counts or {}
 
@@ -186,26 +189,27 @@ class RuleBasedTaskAllocator:
             assignment_counts=assignment_counts,
         )
 
-        # 2) Calculate used tokens from inflight
-        used_tokens = 0
-        for agent_id, count in inflight_counts.items():
-            agent_str = agent_id.value if isinstance(agent_id, AgentType) else agent_id
-            cost = max(1, int(agent_token_estimates.get(agent_str, 1)))
-            used_tokens += count * cost
+        # 2) Random-shuffle budget allocation (no capacity planning)
+        token_costs = self.token_planner._parse_agent_keys(agent_token_estimates)
+        inflight = self.token_planner._parse_agent_keys(inflight_counts)
 
+        used_tokens = 0
+        for agent, count in inflight.items():
+            cost = max(1, int(token_costs.get(agent, 1)))
+            used_tokens += count * cost
         remaining = max(0, self.max_token_sum - used_tokens)
 
-        # 3) Simple sequential allocation — fill in order until budget runs out
         final_alloc: Dict[str, str] = {}
         capacity_count: Dict[str, int] = {}
         budget_used = 0
 
-        sorted_qs = sorted(questions, key=lambda x: getattr(x, "priority", 99))
+        shuffled_qs = list(questions)
+        random.shuffle(shuffled_qs)
         any_allocated = False
-        for q in sorted_qs:
+        for q in shuffled_qs:
             agent = task_assignments[q.question_id]
-            agent_str = agent.value if isinstance(agent, AgentType) else agent
-            cost = max(1, int(agent_token_estimates.get(agent_str, 1)))
+            agent_str = agent.value
+            cost = max(1, int(token_costs.get(agent, 1)))
 
             if budget_used + cost <= remaining:
                 final_alloc[q.question_id] = agent_str
@@ -213,30 +217,32 @@ class RuleBasedTaskAllocator:
                 capacity_count[agent_str] = capacity_count.get(agent_str, 0) + 1
                 any_allocated = True
             else:
-                final_alloc[q.question_id] = ""  # Deferred to next round
+                # Budget exceeded — stop immediately, defer all remaining
+                for remaining_q in shuffled_qs:
+                    if remaining_q.question_id not in final_alloc:
+                        final_alloc[remaining_q.question_id] = ""
+                break
 
-        # Safety: if nothing was allocated AND all costs exceed max budget, force first task
-        if not any_allocated and sorted_qs:
+        # Safety: if nothing was allocated AND all agent costs exceed max budget,
+        # force allocate first task to prevent infinite loop.
+        if not any_allocated and shuffled_qs:
             min_cost = min(
-                max(1, int(agent_token_estimates.get(
-                    (task_assignments[q.question_id].value if isinstance(task_assignments[q.question_id], AgentType) else task_assignments[q.question_id]), 1)))
-                for q in sorted_qs
+                max(1, int(token_costs.get(task_assignments[q.question_id], 1)))
+                for q in shuffled_qs
             )
             if min_cost > self.max_token_sum:
-                q = sorted_qs[0]
+                q = shuffled_qs[0]
                 agent = task_assignments[q.question_id]
-                agent_str = agent.value if isinstance(agent, AgentType) else agent
-                final_alloc[q.question_id] = agent_str
-                capacity_count[agent_str] = capacity_count.get(agent_str, 0) + 1
+                final_alloc[q.question_id] = agent.value
+                capacity_count[agent.value] = capacity_count.get(agent.value, 0) + 1
 
-        # Include all agents to prevent agent_capacities from shrinking
         self.latest_capacities = {a.value: capacity_count.get(a.value, 0) for a in AgentType}
 
         if self.verbose:
             allocated = sum(1 for v in final_alloc.values() if v != "")
-            deferred = sum(1 for v in final_alloc.values() if v == "")
-            print(f"[TypeBased Allocator] Sequential budget: {budget_used}/{remaining} used")
-            print(f"  Allocated: {allocated}, Deferred: {deferred}")
+            total = len(questions)
+            deferred = total - allocated
+            print(f"[TypeBased Allocator] Random-shuffle budget: allocated={allocated}, deferred={deferred}")
             for k, v in final_alloc.items():
                 if v:
                     print(f"  {k} → {v}")

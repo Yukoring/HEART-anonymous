@@ -217,9 +217,13 @@ def allocate_node(state: SystemState) -> SystemState:
     if _agent_instances:
         # Agent cumulative totals (auto-accumulated via add_to_memory)
         total_agent_tokens = sum(getattr(a, 'total_tokens', 0) for a in _agent_instances.values())
-        total_agent_time = sum(getattr(a, 'total_time', 0.0) for a in _agent_instances.values())
+        # cumulative_llm_time = sum of every agent's LLM call durations across all rounds.
+        # This over-counts parallel work within a round (5 agents in parallel are summed).
+        # Wall-clock for the agent stage is computed in metrics_collection_node from
+        # round timestamps and stored in stage_3_agents["time"].
+        cumulative_llm_time = sum(getattr(a, 'total_time', 0.0) for a in _agent_instances.values())
         state["evaluation_metrics"]["stage_3_agents"]["tokens"] = total_agent_tokens
-        state["evaluation_metrics"]["stage_3_agents"]["time"] = total_agent_time
+        state["evaluation_metrics"]["stage_3_agents"]["cumulative_llm_time"] = cumulative_llm_time
 
         # Per-agent details
         if "agent_details" not in state["evaluation_metrics"]:
@@ -800,6 +804,26 @@ def metrics_collection_node(state: SystemState) -> SystemState:
 
     # Preserve synthesis tokens/time if synthesis already ran before this node
     # (synthesize → metrics_collection flow: don't overwrite synthesis results)
+
+    # --- Compute parallel-aware agent stage time from round timestamps ---
+    # Each round's `timestamp` is the allocator-end time. Within a round, agents
+    # run in parallel, so the round's agent-stage duration is max(agent times).
+    # Between consecutive round timestamps, the prior round's agents run
+    # (parallel) followed by the next round's allocator. The final entry in
+    # rounds_list is the empty exit allocate call, so we iterate over N-1
+    # segments to capture every active round's agent execution:
+    #   agent_time_k = (timestamp_{k+1} - timestamp_k) - allocator_time_{k+1}
+    rounds_list = state["evaluation_metrics"].get("rounds", [])
+    agent_time_total = 0.0
+    for k in range(len(rounds_list) - 1):
+        ts_k = rounds_list[k].get("timestamp")
+        ts_next = rounds_list[k + 1].get("timestamp")
+        alloc_next = rounds_list[k + 1].get("allocator_time", 0.0)
+        if ts_k is not None and ts_next is not None:
+            seg = ts_next - ts_k - alloc_next
+            if seg > 0:
+                agent_time_total += seg
+    state["evaluation_metrics"]["stage_3_agents"]["time"] = agent_time_total
 
     # Calculate total workflow time and tokens using new structure
     stage1 = state["evaluation_metrics"].get("stage_1_decomposer", {})

@@ -9,7 +9,7 @@ determined by agent_id at initialization:
 
 Supports all agent configurations:
 - 5 heterogeneous agents: capability, environmental, path, feasibility, constraint
-- 3-agent ablation: physical (cap+feas merged), spatial (env+path merged), constraint
+- 3-agent ablation: physical (cap+feas), spatial (env+path), constraint
 - 1 homogeneous agent: receives full unfiltered data
 """
 

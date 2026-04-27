@@ -38,19 +38,19 @@ EXPERIMENTS = {
     "allocator_heart": {
         "agents": AGENTS_5,
         "allocator_type": "heart",
-        "planner_type": None,
+        "planner_type": "llm_cot",
         "description": "HEART allocator (full)",
     },
     "allocator_llm": {
         "agents": AGENTS_5,
         "allocator_type": "llm",
-        "planner_type": None,
+        "planner_type": "llm_cot",
         "description": "LLM allocator",
     },
     "allocator_type_based": {
         "agents": AGENTS_5,
         "allocator_type": "type_based",
-        "planner_type": None,
+        "planner_type": "llm_cot",
         "description": "TypeBased allocator",
     },
 
@@ -88,19 +88,19 @@ EXPERIMENTS = {
     "ablation_semantic_only": {
         "agents": AGENTS_5,
         "allocator_type": "heart_semantic_only",
-        "planner_type": None,
+        "planner_type": "llm_cot",
         "description": "Ablation: semantic routing only (no capacity, no penalty)",
     },
     "ablation_no_penalty": {
         "agents": AGENTS_5,
         "allocator_type": "heart_no_penalty",
-        "planner_type": None,
+        "planner_type": "llm_cot",
         "description": "Ablation: capacity planning only (no penalty)",
     },
     "ablation_no_capacity": {
         "agents": AGENTS_5,
         "allocator_type": "heart_no_capacity",
-        "planner_type": None,
+        "planner_type": "llm_cot",
         "description": "Ablation: history penalty only (no capacity planning)",
     },
     # "allocator_heart" above serves as the full HEART condition (capacity + penalty)
