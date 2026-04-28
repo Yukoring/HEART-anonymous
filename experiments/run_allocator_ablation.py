@@ -2,7 +2,6 @@
 Allocator Ablation Experiment
 
 Compares allocator strategies across multiple budgets using fixed decomposition.
-Uses extended decomposition (15-30 questions) to make capacity planning differences visible.
 Decompositions are saved and can be reused with --decompose-dir.
 
 Conditions:
@@ -111,7 +110,7 @@ def main():
             if args.decompose_dir:
                 decomp = load_decomposition(Path(args.decompose_dir), scene_name, task.id, iteration)
             if decomp is None:
-                decomp = decompose_once(task.goal, env_data, AGENTS_5, extended=False)
+                decomp = decompose_once(task.goal, env_data, AGENTS_5)
                 save_decomposition(decomp, output_dir, scene_name, task.id, iteration)
 
             questions_dict = decomp["questions_dict"]

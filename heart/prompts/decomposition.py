@@ -8,7 +8,6 @@ feasibility, and constraint dimensions. Each question is tagged with a TaskType.
 
 Includes separate prompts for:
 - Standard decomposition (get_decompose_human_prompt)
-- Extended decomposition with 15-30 questions (get_decompose_extended_prompt)
 - Refinement when initial decomposition has issues (get_refine_human_prompt)
 - Multi-robot decomposition (get_decompose_multi_robot_human_prompt)
 """
@@ -229,19 +228,3 @@ Note: Focus on WHAT information is needed (task type), not WHO will answer it (a
 """
 
 
-def get_decompose_extended_prompt() -> str:
-    """Get decomposition prompt that generates more questions (25-30).
-    Used for allocator ablation experiments where more questions
-    make capacity planning differences more visible.
-    Same as standard prompt except for question count and diversity requirements."""
-    base = get_decompose_human_prompt()
-    return base.replace(
-        "## Output Format:",
-        """## IMPORTANT: Generate between 25 and 30 reasoning questions.
-- Ensure DIVERSITY across all available task types — do not cluster questions in one or two types.
-- Each task type should have at least 2 questions.
-- Avoid near-duplicate questions (e.g., do NOT create separate "can gripper grasp apple" and "can gripper grasp hamburger" — instead ask about all objects in one question).
-- Ask about each object/location ONCE with all relevant checks combined.
-
-## Output Format:"""
-    )

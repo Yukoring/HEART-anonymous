@@ -571,8 +571,7 @@ def parse_tasks_arg(tasks_str: List[str]) -> Optional[List[int]]:
 
 # ==================== Fixed Decomposition Utilities ====================
 
-def decompose_once(instruction: str, env_data: Dict[str, Any], agents: List[str],
-                    extended: bool = False) -> Dict[str, Any]:
+def decompose_once(instruction: str, env_data: Dict[str, Any], agents: List[str]) -> Dict[str, Any]:
     """
     Decompose once and return reusable question set.
 
@@ -580,7 +579,6 @@ def decompose_once(instruction: str, env_data: Dict[str, Any], agents: List[str]
         instruction: Task instruction
         env_data: Environment data
         agents: Agent IDs for token estimation
-        extended: If True, use extended prompt (15-30 questions) for allocator ablation
 
     Returns dict with:
         questions_dict: {q_id: question_dict}
@@ -593,19 +591,7 @@ def decompose_once(instruction: str, env_data: Dict[str, Any], agents: List[str]
     from heart.configs.models import REASONING_AGENTS
 
     decomposer = TaskDecomposer(env_data=env_data)
-
-    if extended:
-        from heart.prompts.decomposition import get_decompose_extended_prompt
-        from heart.core.schema import AgentTask
-        task = AgentTask(
-            task_id="Decompose",
-            query=instruction,
-            metadata={"operation": "decompose", "human_prompt": get_decompose_extended_prompt()}
-        )
-        results = decomposer.agent.reason([task])
-        decomposition = results[0].result
-    else:
-        decomposition = decomposer.decompose(instruction=instruction)
+    decomposition = decomposer.decompose(instruction=instruction)
 
     questions_dict = {}
     for q in decomposition.questions:
