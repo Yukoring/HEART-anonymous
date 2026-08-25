@@ -192,6 +192,37 @@ def _arm_chain(model: URDFModel) -> List[Tuple[str,str]]:
     chain = _longest_nonfixed_chain(model, exclude_pred=exclude)
     return chain
 
+def _reach_height(model: URDFModel, chain: List[Tuple[str,str]]) -> float|None:
+    """
+    Highest point the end-effector can reach, measured from the base frame.
+
+    Taken as the height of the first movable joint in the arm chain (the
+    shoulder, or the torso lift when the arm is mounted on a lifting column)
+    plus the length of the chain from there to the tip — i.e. the arm fully
+    extended upward. Prismatic lift stroke is already part of the chain, so it
+    needs no separate term.
+    """
+    Tmap, base = model.static_poses()
+    shoulder_idx = None
+    for i, (_, jn) in enumerate(chain):
+        if model.joints[jn].attrib.get('type') != 'fixed':
+            shoulder_idx = i
+            break
+    if shoulder_idx is None:
+        return None
+
+    shoulder_link = chain[shoulder_idx][0]
+    if shoulder_link not in Tmap:
+        return None
+    shoulder_z = Tmap[shoulder_link][1][2]
+
+    pts = [Tmap[c][1] for c, _ in chain[shoulder_idx:] if c in Tmap]
+    if len(pts) < 2:
+        return shoulder_z
+    segs = [_norm([pts[i+1][k]-pts[i][k] for k in range(3)]) for i in range(len(pts)-1)]
+    return shoulder_z + sum(segs)
+
+
 def _arm_specs(model: URDFModel) -> Dict[str,Any]:
     """
     Detect multiple arms in the robot.
@@ -216,7 +247,8 @@ def _arm_specs(model: URDFModel) -> Dict[str,Any]:
         chain = _arm_chain(model)
         dof = sum(1 for _,jn in chain if model.joints[jn].attrib.get('type')!='fixed')
         if dof == 0:
-            return {"has_arm": False, "num_arms": 0, "degrees_of_freedom": 0, "max_reach": None}
+            return {"has_arm": False, "num_arms": 0, "degrees_of_freedom": 0,
+                    "max_reach": None, "reach_height": None}
         
         # Calculate reach for single arm
         Tmap, base = model.static_poses()
@@ -230,7 +262,8 @@ def _arm_specs(model: URDFModel) -> Dict[str,Any]:
             reach = sum(segs)
             zs = [p[2] for p in pts]
             zspan = [min(zs), max(zs)]
-        return {"has_arm": True, "num_arms": 1, "degrees_of_freedom": dof, "max_reach": reach}
+        return {"has_arm": True, "num_arms": 1, "degrees_of_freedom": dof,
+                "max_reach": reach, "reach_height": _reach_height(model, chain)}
     
     # Count distinct arms (e.g., left vs right)
     arm_count = 0
@@ -266,10 +299,11 @@ def _arm_specs(model: URDFModel) -> Dict[str,Any]:
         total_dof = dof * max(arm_count, 1)  # Multiply DOF by number of arms
     
     return {
-        "has_arm": arm_count > 0, 
+        "has_arm": arm_count > 0,
         "num_arms": arm_count,
-        "degrees_of_freedom": total_dof, 
-        "max_reach": max_reach
+        "degrees_of_freedom": total_dof,
+        "max_reach": max_reach,
+        "reach_height": _reach_height(model, chain) if dof > 0 else None
     }
 
 def _finger_length(model: URDFModel, link_name: str) -> float:
@@ -630,6 +664,7 @@ def get_robot_summary(urdf_path: str) -> Dict[str, Any]:
         "can_grasp": full["gripper"]["has_gripper"],
         "max_grasp_size": full["gripper"]["max_opening"],
         "max_reach": full["arm"]["max_reach"],
+        "reach_height": full["arm"]["reach_height"],
         "mobility": full["base"]["mobility_type"],
         "has_vision": full["sensors"]["has_camera"],
     }
@@ -641,7 +676,7 @@ def _regex_fallback(xml: str) -> Dict[str,Any]:
         "robot_name": robot_name,
         "robot_type": "generic_robot",
         "gripper": {"has_gripper": bool(re.search(r'(grip|finger|jaw)', xml, re.I)), "max_opening": None, "min_opening": None, "force_range": None},
-        "arm": {"has_arm": bool(re.search(r'(shoulder|elbow|wrist|forearm|upperarm)', xml, re.I)), "degrees_of_freedom": None, "max_reach": None},
+        "arm": {"has_arm": bool(re.search(r'(shoulder|elbow|wrist|forearm|upperarm)', xml, re.I)), "degrees_of_freedom": None, "max_reach": None, "reach_height": None},
         "payload": {"max_weight": None, "max_torque": None},
         "base": {"footprint": None, "max_velocity": None, "mobility_type": ("aerial" if re.search(r'(rotor|propeller)', xml, re.I) else ("wheeled" if 'wheel' in xml.lower() else "fixed")), "has_mobility": None, "torso_lift": None},
         "sensors": {"has_camera": bool(re.search(r'(camera|rgbd|kinect|optical)', xml, re.I)), "has_depth": bool(re.search(r'(depth|rgbd|kinect)', xml, re.I)), "has_lidar": bool(re.search(r'(lidar|hokuyo|velodyne|laser|gpu_ray|<ray)', xml, re.I)), "camera_height": None, "camera_fov": None},

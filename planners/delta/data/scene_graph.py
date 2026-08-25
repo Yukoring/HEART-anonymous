@@ -1403,7 +1403,7 @@ BENEVOLENCE = {
                 "sunglass_60": {
                     "location": [1.400, -4.266, 0.635],
                     "size": [0.210, 0.112, 0.064],
-                    "weight": "3.5kg",
+                    "weight": "8.0kg",
                     "affordance": ["pick", "place_in", "drop"],
                     "accessible": True,
                     "parent": ["shelf_0"],

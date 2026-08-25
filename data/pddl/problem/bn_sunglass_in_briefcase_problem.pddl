@@ -1,7 +1,7 @@
 (define (problem benevolence_sunglass_in_briefcase)
     (:domain sunglass_in_briefcase)
 
-    ; Only the light sunglass (sunglass_65, 0.05kg) — sunglass_60 is 3.5kg (too heavy)
+    ; Only the light sunglass (sunglass_65, 0.05kg) — sunglass_60 is 8.0kg (over fetch payload 6.0kg)
     (:objects
         robot - agent
         corridor_7 dining_room_9 kitchen_11 living_room_12 staircase_15 - room
