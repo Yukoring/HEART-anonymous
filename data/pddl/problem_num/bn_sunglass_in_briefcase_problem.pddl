@@ -28,7 +28,7 @@
 
         (item_pickable sunglass_65) (item_accessible sunglass_65)
         (item_container briefcase_61) (item_accessible briefcase_61)
-
+    
         ; Restored objects — infeasibility is derived, not assumed
         (item_at sunglass_60 living_room_12) (item_pickable sunglass_60) (item_accessible sunglass_60)
 

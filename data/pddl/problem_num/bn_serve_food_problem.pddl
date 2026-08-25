@@ -55,7 +55,7 @@
         ; Item properties - table_1 (surface for placing items)
         (item_surface table_1)
         (item_accessible table_1)
-
+    
         ; Restored objects — infeasibility is derived, not assumed
         (item_at apple_57 kitchen_11) (item_pickable apple_57) (item_accessible apple_57)
 

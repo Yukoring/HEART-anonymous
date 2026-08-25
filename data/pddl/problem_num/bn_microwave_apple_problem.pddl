@@ -30,7 +30,7 @@
         (item_container microwave_36) (item_openable microwave_36) (item_closeable microwave_36)
         (item_turnable microwave_36) (item_accessible microwave_36)
         (item_closed microwave_36) (item_turned_off microwave_36)
-
+    
         ; Restored objects — infeasibility is derived, not assumed
         (item_at apple_57 kitchen_11) (item_pickable apple_57) (item_accessible apple_57)
 

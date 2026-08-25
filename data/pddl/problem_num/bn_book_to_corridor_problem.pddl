@@ -34,7 +34,7 @@
         ; Console table in corridor
         (item_at console_table_9 corridor_7)
         (item_surface console_table_9) (item_accessible console_table_9)
-
+    
         ; Restored objects — infeasibility is derived, not assumed
         (item_at book_71 living_room_12) (item_pickable book_71) (item_accessible book_71)
 

@@ -36,7 +36,7 @@
 
         (item_at sofa_10 living_room_12)
         (item_surface sofa_10) (item_accessible sofa_10)
-
+    
         ; Restored objects — infeasibility is derived, not assumed
         (item_at sunglass_60 living_room_12) (item_pickable sunglass_60) (item_accessible sunglass_60)
 

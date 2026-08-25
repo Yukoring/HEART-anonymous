@@ -61,6 +61,23 @@
         (item_surface countertop_23) (item_accessible countertop_23)
         (item_surface countertop_26) (item_accessible countertop_26)
         (item_surface countertop_14) (item_accessible countertop_14)
+    
+        ; Restored objects — infeasibility is derived, not assumed
+        (item_at bowl_55 dining_room_9) (item_pickable bowl_55) (item_accessible bowl_55)
+
+        ; Measured values (scene graph); weight 0.0 where unmeasured
+        (= (item_weight bowl_55) 0.0) (= (item_width bowl_55) 0.170) (= (item_height bowl_55) 0.842)
+        (= (item_weight bowl_63) 0.0) (= (item_width bowl_63) 0.050) (= (item_height bowl_63) 0.842)
+        (= (item_weight countertop_14) 0.0) (= (item_width countertop_14) 0.100) (= (item_height countertop_14) 1.050)
+        (= (item_weight countertop_18) 0.0) (= (item_width countertop_18) 0.020) (= (item_height countertop_18) 0.890)
+        (= (item_weight countertop_21) 0.0) (= (item_width countertop_21) 0.020) (= (item_height countertop_21) 0.890)
+        (= (item_weight countertop_23) 0.0) (= (item_width countertop_23) 0.020) (= (item_height countertop_23) 0.890)
+        (= (item_weight countertop_26) 0.0) (= (item_width countertop_26) 0.020) (= (item_height countertop_26) 0.890)
+        (= (item_weight dishwasher_20) 0.0) (= (item_width dishwasher_20) 0.533) (= (item_height dishwasher_20) 0.440)
+        (= (item_weight table_1) 0.0) (= (item_width table_1) 0.710) (= (item_height table_1) 0.380)
+
+        ; fetch_gripper limits (URDF and published payload)
+        (= (agent_payload robot) 6.0) (= (agent_gripper robot) 0.100) (= (agent_reach robot) 1.871)
     )
 
     ; Goal - bowl in dishwasher

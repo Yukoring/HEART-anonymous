@@ -37,7 +37,7 @@
         ; Dining table — surface for placing cup
         (item_at table_1 dining_room_9)
         (item_surface table_1) (item_accessible table_1)
-
+    
         ; Restored objects — infeasibility is derived, not assumed
         (item_at cup_68 kitchen_11) (item_pickable cup_68) (item_accessible cup_68)
 
