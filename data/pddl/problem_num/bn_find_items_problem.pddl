@@ -55,6 +55,18 @@
         (item_accessible window_50)
         (item_open window_50)  ; window starts open
 
+    
+        ; Restored objects — infeasibility is derived, not assumed
+        (item_at sunglass_60 living_room_12) (item_pickable sunglass_60) (item_accessible sunglass_60)
+
+        ; Measured values (scene graph); weight 0.0 where unmeasured
+        (= (item_weight countertop_18) 0.0) (= (item_width countertop_18) 0.020) (= (item_height countertop_18) 0.890)
+        (= (item_weight sunglass_60) 8.0) (= (item_width sunglass_60) 0.064) (= (item_height sunglass_60) 0.635)
+        (= (item_weight sunglass_65) 0.05) (= (item_width sunglass_65) 0.064) (= (item_height sunglass_65) 0.635)
+        (= (item_weight window_50) 0.0) (= (item_width window_50) 0.219) (= (item_height window_50) 1.250)
+
+        ; fetch_gripper limits (URDF and published payload)
+        (= (agent_payload robot) 6.0) (= (agent_gripper robot) 0.100) (= (agent_reach robot) 1.871)
     )
 
     ; Goal - sunglass on countertop and window closed

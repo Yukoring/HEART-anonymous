@@ -31,7 +31,7 @@
         (item_container oven_24) (item_openable oven_24) (item_closeable oven_24)
         (item_turnable oven_24) (item_accessible oven_24)
         (item_closed oven_24) (item_turned_off oven_24)
-
+    
         ; Restored objects — infeasibility is derived, not assumed
         (item_at bowl_55 dining_room_9) (item_pickable bowl_55) (item_accessible bowl_55)
 

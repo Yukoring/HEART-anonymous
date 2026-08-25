@@ -34,7 +34,7 @@
         ; Dining table
         (item_at table_1 dining_room_9)
         (item_surface table_1) (item_accessible table_1)
-
+    
         ; Restored objects — infeasibility is derived, not assumed
         (item_at cheese_67 kitchen_11) (item_pickable cheese_67) (item_accessible cheese_67)
 

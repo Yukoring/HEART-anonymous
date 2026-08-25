@@ -33,7 +33,7 @@
         (item_container fridge_27) (item_openable fridge_27)
         (item_closeable fridge_27) (item_accessible fridge_27)
         (item_closed fridge_27)
-
+    
         ; Restored objects — infeasibility is derived, not assumed
         (item_at apple_57 kitchen_11) (item_pickable apple_57) (item_accessible apple_57)
 

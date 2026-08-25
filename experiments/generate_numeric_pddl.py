@@ -78,6 +78,15 @@ def category(name: str) -> str:
     return re.sub(r"_\d+$", "", name)
 
 
+def mask_comments(text: str) -> str:
+    """Blank out comment bodies, keeping every character offset intact."""
+    out = []
+    for line in text.split("\n"):
+        idx = line.find(";")
+        out.append(line if idx < 0 else line[:idx] + " " * (len(line) - idx))
+    return "\n".join(out)
+
+
 def parse_objects(text: str) -> Tuple[str, Set[str]]:
     """The `:objects` block verbatim, plus every name declared in it."""
     match = re.search(r"\(:objects(.*?)\n\s*\)", text, re.S)
@@ -178,9 +187,14 @@ def convert_problem(text: str, task_id: str, urdf_key: str,
                      f" (= (agent_gripper {agent}) {cap.gripper_opening:.3f})"
                      f" (= (agent_reach {agent}) {cap.reach_height:.3f})")
 
-    # Append to :init, which ends at the line before :goal.
-    lines.append("")
-    text = re.sub(r"\n(\s*\)\s*\n\s*\(:goal)", "\n" + "\n".join(lines) + r"\1", text, count=1)
+    # Append to :init, whose closing paren is the last one before :goal. The
+    # search runs over a comment-masked copy at identical offsets, because the
+    # comments themselves contain parens ("put one notebook (either 64 or 54)").
+    masked = mask_comments(text)
+    goal_at = masked.index("(:goal")
+    init_close = masked.rindex(")", 0, goal_at)
+    lines.append("    ")
+    text = text[:init_close] + "\n".join(lines) + text[init_close:]
     return text, restored
 
 
