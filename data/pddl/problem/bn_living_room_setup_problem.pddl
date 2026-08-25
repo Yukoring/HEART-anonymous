@@ -1,7 +1,7 @@
 (define (problem benevolence_living_room_setup)
     (:domain living_room_setup)
 
-    ; sunglass_65 (0.05kg, light) — sunglass_60 is 3.5kg (too heavy for jr2 payload 2.6kg)
+    ; sunglass_65 (0.05kg, light) — sunglass_60 is 8.0kg (over jr2 payload 2.6kg)
     (:objects
         robot - agent
         corridor_7 dining_room_9 kitchen_11 living_room_12 staircase_15 - room
