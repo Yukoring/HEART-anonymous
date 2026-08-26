@@ -44,8 +44,8 @@
         (= (item_weight console_table_9) 0.0) (= (item_width console_table_9) 0.324) (= (item_height console_table_9) 0.350)
         (= (item_weight pen_56) 0.0) (= (item_width pen_56) 0.016) (= (item_height pen_56) 0.087)
 
-        ; jr2_kinova_gripper limits (URDF and published payload)
-        (= (agent_payload robot) 2.6) (= (agent_gripper robot) 0.088) (= (agent_reach robot) 1.432)
+        ; Robot limits (URDF and published payload)
+        (= (agent_payload robot) 2.6) (= (agent_gripper robot) 0.088) (= (agent_reach robot) 1.432)  ; jr2_kinova_gripper
     )
 
     (:goal

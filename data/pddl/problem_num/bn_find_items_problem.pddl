@@ -65,8 +65,8 @@
         (= (item_weight sunglass_65) 0.05) (= (item_width sunglass_65) 0.064) (= (item_height sunglass_65) 0.635)
         (= (item_weight window_50) 0.0) (= (item_width window_50) 0.219) (= (item_height window_50) 1.250)
 
-        ; fetch_gripper limits (URDF and published payload)
-        (= (agent_payload robot) 6.0) (= (agent_gripper robot) 0.100) (= (agent_reach robot) 1.871)
+        ; Robot limits (URDF and published payload)
+        (= (agent_payload robot) 6.0) (= (agent_gripper robot) 0.100) (= (agent_reach robot) 1.871)  ; fetch_gripper
     )
 
     ; Goal - sunglass on countertop and window closed

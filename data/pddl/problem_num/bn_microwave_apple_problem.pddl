@@ -39,8 +39,8 @@
         (= (item_weight apple_62) 0.0) (= (item_width apple_62) 0.066) (= (item_height apple_62) 0.966)
         (= (item_weight microwave_36) 0.0) (= (item_width microwave_36) 0.350) (= (item_height microwave_36) 1.555)
 
-        ; fetch_gripper limits (URDF and published payload)
-        (= (agent_payload robot) 6.0) (= (agent_gripper robot) 0.100) (= (agent_reach robot) 1.871)
+        ; Robot limits (URDF and published payload)
+        (= (agent_payload robot) 6.0) (= (agent_gripper robot) 0.100) (= (agent_reach robot) 1.871)  ; fetch_gripper
     )
 
     (:goal

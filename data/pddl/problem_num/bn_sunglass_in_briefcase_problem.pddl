@@ -37,8 +37,8 @@
         (= (item_weight sunglass_60) 8.0) (= (item_width sunglass_60) 0.064) (= (item_height sunglass_60) 0.635)
         (= (item_weight sunglass_65) 0.05) (= (item_width sunglass_65) 0.064) (= (item_height sunglass_65) 0.635)
 
-        ; fetch_gripper limits (URDF and published payload)
-        (= (agent_payload robot) 6.0) (= (agent_gripper robot) 0.100) (= (agent_reach robot) 1.871)
+        ; Robot limits (URDF and published payload)
+        (= (agent_payload robot) 6.0) (= (agent_gripper robot) 0.100) (= (agent_reach robot) 1.871)  ; fetch_gripper
     )
 
     (:goal

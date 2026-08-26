@@ -40,8 +40,8 @@
         (= (item_weight bowl_63) 0.0) (= (item_width bowl_63) 0.050) (= (item_height bowl_63) 0.842)
         (= (item_weight oven_24) 0.0) (= (item_width oven_24) 0.642) (= (item_height oven_24) 0.440)
 
-        ; fetch_gripper limits (URDF and published payload)
-        (= (agent_payload robot) 6.0) (= (agent_gripper robot) 0.100) (= (agent_reach robot) 1.871)
+        ; Robot limits (URDF and published payload)
+        (= (agent_payload robot) 6.0) (= (agent_gripper robot) 0.100) (= (agent_reach robot) 1.871)  ; fetch_gripper
     )
 
     (:goal

@@ -52,6 +52,16 @@ def run_val(domain: Path, problem: Path, plan: Path) -> Tuple[bool, str]:
     if "Plan valid" in out:
         return True, ""
 
+    # A plan naming an action or object the domain does not define is rejected
+    # before execution starts, so its preconditions are never evaluated. Keeping
+    # these separate matters: such a plan may also contain a physically
+    # impossible action that this run cannot see.
+    match = re.search(r"Object with unknown type: (\S+)", out)
+    if match:
+        return False, f"undefined_object({match.group(1)})"
+    if "Bad plan description" in out:
+        return False, "malformed_plan"
+
     match = re.search(r"has an unsatisfied precondition at time \d+\n\((.*?)\)\n", out, re.S)
     if match:
         return False, " ".join(match.group(1).split())

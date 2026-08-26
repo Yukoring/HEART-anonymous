@@ -44,8 +44,8 @@
         (= (item_weight fridge_27) 0.0) (= (item_width fridge_27) 0.900) (= (item_height fridge_27) 0.880)
         (= (item_weight table_1) 0.0) (= (item_width table_1) 0.710) (= (item_height table_1) 0.380)
 
-        ; jr2_kinova_gripper limits (URDF and published payload)
-        (= (agent_payload robot) 2.6) (= (agent_gripper robot) 0.088) (= (agent_reach robot) 1.432)
+        ; Robot limits (URDF and published payload)
+        (= (agent_payload robot) 2.6) (= (agent_gripper robot) 0.088) (= (agent_reach robot) 1.432)  ; jr2_kinova_gripper
     )
 
     (:goal (item_on cheese_66 table_1))
