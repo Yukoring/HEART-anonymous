@@ -67,8 +67,8 @@
         (= (item_weight hamburger_58) 0.0) (= (item_width hamburger_58) 0.091) (= (item_height hamburger_58) 0.903)
         (= (item_weight table_1) 0.0) (= (item_width table_1) 0.710) (= (item_height table_1) 0.380)
 
-        ; fetch_gripper limits (URDF and published payload)
-        (= (agent_payload robot) 6.0) (= (agent_gripper robot) 0.100) (= (agent_reach robot) 1.871)
+        ; Robot limits (URDF and published payload)
+        (= (agent_payload robot) 6.0) (= (agent_gripper robot) 0.100) (= (agent_reach robot) 1.871)  ; fetch_gripper
     )
 
     (:goal

@@ -43,8 +43,8 @@
         (= (item_weight fridge_27) 0.0) (= (item_width fridge_27) 0.900) (= (item_height fridge_27) 0.880)
         (= (item_weight hamburger_58) 0.0) (= (item_width hamburger_58) 0.091) (= (item_height hamburger_58) 0.903)
 
-        ; fetch_gripper limits (URDF and published payload)
-        (= (agent_payload robot) 6.0) (= (agent_gripper robot) 0.100) (= (agent_reach robot) 1.871)
+        ; Robot limits (URDF and published payload)
+        (= (agent_payload robot) 6.0) (= (agent_gripper robot) 0.100) (= (agent_reach robot) 1.871)  ; fetch_gripper
     )
 
     (:goal

@@ -47,8 +47,8 @@
         (= (item_weight sunglass_65) 0.05) (= (item_width sunglass_65) 0.064) (= (item_height sunglass_65) 0.635)
         (= (item_weight wall_mounted_tv_49) 0.0) (= (item_width wall_mounted_tv_49) 0.158) (= (item_height wall_mounted_tv_49) 1.200)
 
-        ; jr2_kinova_gripper limits (URDF and published payload)
-        (= (agent_payload robot) 2.6) (= (agent_gripper robot) 0.088) (= (agent_reach robot) 1.432)
+        ; Robot limits (URDF and published payload)
+        (= (agent_payload robot) 2.6) (= (agent_gripper robot) 0.088) (= (agent_reach robot) 1.432)  ; jr2_kinova_gripper
     )
 
     (:goal

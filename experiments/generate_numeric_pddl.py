@@ -38,7 +38,7 @@ from heart.configs.tasks import (
     get_scene_graph_path,
     get_scene_robots,
 )
-from heart.evaluation.feasibility_oracle import get_capability, narrow_axis
+from heart.evaluation.feasibility_oracle import get_capability, graspable, narrow_axis
 
 PROJECT_ROOT = Path(__file__).parent.parent
 DOMAIN_OUT = PROJECT_ROOT / "data" / "pddl" / "domain_num"
@@ -115,8 +115,11 @@ def convert_domain(text: str) -> str:
     if "(:functions" in text:
         raise ValueError("domain already numeric")
 
-    text = text.replace("(:requirements :strips :typing :adl)",
-                        "(:requirements :strips :typing :adl :fluents)")
+    # The domains carry either `:strips :typing` or `:strips :typing :adl`.
+    text, n = re.subn(r"\(:requirements([^)]*)\)",
+                      lambda m: f"(:requirements{m.group(1)} :fluents)", text, count=1)
+    if n != 1:
+        raise ValueError("no :requirements to extend")
 
     # Functions go after the predicate block, which ends the line before the
     # first action.
@@ -135,24 +138,40 @@ def convert_domain(text: str) -> str:
     return text
 
 
-def convert_problem(text: str, task_id: str, urdf_key: str,
+def convert_problem(text: str, task_id: str, robot_urdfs: Dict[str, str],
                     items: Dict[str, Tuple[str, Dict]]) -> Tuple[str, List[str]]:
     """Restore deliberately excluded siblings and append measured values."""
     objects_block, declared = parse_objects(text)
     agents = agents_in(objects_block)
-    cap = get_capability(urdf_key)
+    # Multi-robot scenes declare one agent per robot; each gets its own limits.
+    # A drone is typed `- drone` and so never appears here.
+    fallback = next(k for k in robot_urdfs.values() if get_capability(k).has_gripper)
+    caps = {a: get_capability(robot_urdfs.get(a, fallback)) for a in agents}
+    # The grasp thresholds in the problem must match the tightest robot that can
+    # be bound to `pick`, which is per-agent, so no single `cap` is used below.
 
     by_category = defaultdict(list)
     for name in items:
         if "pick" in items[name][1].get("affordance", []):
             by_category[category(name)].append(name)
 
+    # An absent sibling is only a deliberate exclusion when the robot genuinely
+    # cannot handle it. Merom omits reachable items too — those are simply not
+    # part of the task, and restoring them would assert an exclusion that the
+    # answer key never made.
+    # Only the arm-equipped robots decide this. A drone fails every grasp by
+    # definition, so including it would mark every absent item as excluded.
+    manipulators = {k for k in robot_urdfs.values() if get_capability(k).has_gripper}
     restored = []
     for siblings in by_category.values():
         present = [s for s in siblings if s in declared]
-        absent = [s for s in siblings if s not in declared]
-        if present and absent:
-            restored.extend(absent)
+        if not present:
+            continue
+        for name in siblings:
+            if name in declared:
+                continue
+            if any(not graspable(k, items[name][1])[0] for k in manipulators):
+                restored.append(name)
 
     if restored:
         # Same line as the other items, so the file keeps its shape.
@@ -181,11 +200,13 @@ def convert_problem(text: str, task_id: str, urdf_key: str,
                      f" (= (item_height {name}) {item['location'][2]:.3f})")
 
     lines.append("")
-    lines.append(f"        ; {urdf_key} limits (URDF and published payload)")
+    lines.append("        ; Robot limits (URDF and published payload)")
     for agent in agents:
+        cap = caps[agent]
         lines.append(f"        (= (agent_payload {agent}) {cap.payload})"
                      f" (= (agent_gripper {agent}) {cap.gripper_opening:.3f})"
-                     f" (= (agent_reach {agent}) {cap.reach_height:.3f})")
+                     f" (= (agent_reach {agent}) {cap.reach_height:.3f})"
+                     f"  ; {cap.urdf_key}")
 
     # Append to :init, whose closing paren is the last one before :goal. The
     # search runs over a comment-masked copy at identical offsets, because the
@@ -220,15 +241,16 @@ def main(abbr: str) -> int:
             continue
 
         robots = get_scene_robots(scene_name, task=task)
-        urdf_key = next((c["urdf"] for c in robots.values()
-                         if get_capability(c["urdf"]).has_gripper), None)
-        if urdf_key is None:
+        robot_urdfs = {name: cfg["urdf"] for name, cfg in robots.items()}
+        if not any(get_capability(k).has_gripper for k in robot_urdfs.values()):
             print(f"  {task.id:7} skipped — no robot with a gripper")
             skipped += 1
             continue
 
         problem_text, restored = convert_problem(
-            problem_path.read_text(), task.id, urdf_key, items)
+            problem_path.read_text(), task.id, robot_urdfs, items)
+        urdf_key = "/".join(sorted({k for k in robot_urdfs.values()
+                                    if get_capability(k).has_gripper}))
 
         (DOMAIN_OUT / domain_path.name).write_text(convert_domain(domain_text))
         (PROBLEM_OUT / problem_path.name).write_text(problem_text)

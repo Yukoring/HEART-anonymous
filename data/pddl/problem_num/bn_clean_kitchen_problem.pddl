@@ -76,8 +76,8 @@
         (= (item_weight dishwasher_20) 0.0) (= (item_width dishwasher_20) 0.533) (= (item_height dishwasher_20) 0.440)
         (= (item_weight table_1) 0.0) (= (item_width table_1) 0.710) (= (item_height table_1) 0.380)
 
-        ; fetch_gripper limits (URDF and published payload)
-        (= (agent_payload robot) 6.0) (= (agent_gripper robot) 0.100) (= (agent_reach robot) 1.871)
+        ; Robot limits (URDF and published payload)
+        (= (agent_payload robot) 6.0) (= (agent_gripper robot) 0.100) (= (agent_reach robot) 1.871)  ; fetch_gripper
     )
 
     ; Goal - bowl in dishwasher

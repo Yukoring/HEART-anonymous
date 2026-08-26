@@ -37,8 +37,8 @@
         (= (item_weight sandwich_70) 0.0) (= (item_width sandwich_70) 0.050) (= (item_height sandwich_70) 0.850)
         (= (item_weight table_1) 0.0) (= (item_width table_1) 0.710) (= (item_height table_1) 0.380)
 
-        ; jr2_kinova_gripper limits (URDF and published payload)
-        (= (agent_payload robot) 2.6) (= (agent_gripper robot) 0.088) (= (agent_reach robot) 1.432)
+        ; Robot limits (URDF and published payload)
+        (= (agent_payload robot) 2.6) (= (agent_gripper robot) 0.088) (= (agent_reach robot) 1.432)  ; jr2_kinova_gripper
     )
 
     (:goal (item_on sandwich_70 table_1))

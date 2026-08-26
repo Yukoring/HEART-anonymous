@@ -1,7 +1,7 @@
 ;Header and description
-(define (domain organize_kitchen)
+(define (domain multi_container_store)
 
-    (:requirements :strips :typing :fluents)
+    (:requirements :strips :typing :adl :fluents)
 
     (:types agent room item)
 
@@ -19,7 +19,6 @@
         (item_in ?i1 - item ?i2 - item)
         (item_open ?i - item)
         (item_closed ?i - item)
-        (apple_placed)
     )
     (:functions
         (item_weight ?i - item)     ; kg
@@ -55,39 +54,23 @@
         :effect (and (item_at ?i ?r) (not(agent_loaded ?a)) (not(agent_has_item ?a ?i)))
     )
 
+    ; place_in: put item into an open container. As result, item is IN the container (item_in).
+    (:action place_in
+        :parameters (?a - agent ?i1 - item ?i2 - item ?r - room)
+        :precondition (and
+            (agent_at ?a ?r) (item_at ?i2 ?r) (item_pickable ?i1)
+            (item_container ?i2) (item_accessible ?i2) (item_openable ?i2)
+            (item_open ?i2) (agent_loaded ?a) (agent_has_item ?a ?i1))
+        :effect (and
+            (item_in ?i1 ?i2) (not(agent_loaded ?a)) (not(agent_has_item ?a ?i1)))
+    )
+
     (:action open
         :parameters (?a - agent ?i - item ?r - room)
         :precondition (and
             (agent_at ?a ?r) (item_at ?i ?r) (item_accessible ?i)
             (item_openable ?i) (item_closed ?i) (not(agent_loaded ?a)))
         :effect (and (not(item_closed ?i)) (item_open ?i))
-    )
-
-    ; place_in_apple: place apple in fridge FIRST
-    (:action place_in_apple
-        :parameters (?a - agent ?i - item ?c - item ?r - room)
-        :precondition (and
-            (agent_at ?a ?r) (item_at ?c ?r)
-            (item_container ?c) (item_accessible ?c) (item_open ?c)
-            (agent_loaded ?a) (agent_has_item ?a ?i)
-            (not(apple_placed)))
-        :effect (and
-            (item_in ?i ?c)
-            (not(agent_loaded ?a)) (not(agent_has_item ?a ?i))
-            (apple_placed))
-    )
-
-    ; place_in_hamburger: place hamburger in fridge AFTER apple
-    (:action place_in_hamburger
-        :parameters (?a - agent ?i - item ?c - item ?r - room)
-        :precondition (and
-            (agent_at ?a ?r) (item_at ?c ?r)
-            (item_container ?c) (item_accessible ?c) (item_open ?c)
-            (agent_loaded ?a) (agent_has_item ?a ?i)
-            (apple_placed))
-        :effect (and
-            (item_in ?i ?c)
-            (not(agent_loaded ?a)) (not(agent_has_item ?a ?i)))
     )
 
     (:action close
