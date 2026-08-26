@@ -134,6 +134,9 @@ def run_baseline_trial(scene_name: str, task, iteration: int, planner_type: str 
     elif planner_type == "delta":
         from planners.delta.delta_planner import DeltaPlanner
         planner = DeltaPlanner()
+    elif planner_type == "triple_s":
+        from planners.triple_s import TripleSPlanner
+        planner = TripleSPlanner()
     else:
         raise ValueError(f"Unknown planner type: {planner_type}")
 

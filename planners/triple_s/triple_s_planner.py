@@ -177,22 +177,37 @@ class TripleSPlanner:
         text = self._ask(prompts.summary_prompt(
             minimal_task, "\n".join(actions), action_library))
 
+        # The labels are asked for in bracket form, but models drift to
+        # "Task:" / "Thought:" / "Example ...:", so both are accepted.
+        labels = {
+            "description": (r"\[task description\]", r"task( description)?\s*:"),
+            "thought": (r"\[thought\]", r"thought\s*:"),
+            "examples": (r"\[examples\]", r"examples?[^:]*:"),
+        }
+
         description = thought = ""
         example: List[str] = []
         section = None
         for line in text.splitlines():
-            stripped = line.strip()
-            lowered = stripped.lower()
-            if lowered.startswith("[task description]"):
-                description = stripped.split("]", 1)[1].strip()
-                section = "description"
-            elif lowered.startswith("[thought]"):
-                thought = stripped.split("]", 1)[1].strip()
-                section = "thought"
-            elif lowered.startswith("[examples]"):
-                section = "examples"
+            stripped = line.strip().strip("`")
+            matched = None
+            for field, patterns in labels.items():
+                for pattern in patterns:
+                    hit = re.match(rf"^\s*{pattern}\s*", stripped, re.I)
+                    if hit:
+                        matched = (field, stripped[hit.end():].strip())
+                        break
+                if matched:
+                    break
+
+            if matched:
+                section, value = matched
+                if section == "description":
+                    description = value
+                elif section == "thought":
+                    thought = value
             elif section == "examples" and "(" in stripped:
-                example.append(stripped)
+                example.append(re.sub(r"^\d+[.)]\s*", "", stripped))
 
         if not description or not example:
             return None
@@ -302,13 +317,25 @@ class TripleSPlanner:
 
     @staticmethod
     def _describe_environment(scene_graph: Dict, robots: Dict) -> str:
+        """
+        The same facts LLM-CoT receives as raw JSON, written out as text.
+
+        Room extents and the robot's starting coordinates are included because
+        the robot's starting room is only recoverable from them; leaving them
+        out would make the first navigation a guess.
+        """
         lines = []
         for scene in scene_graph.values():
             if not isinstance(scene, dict) or "rooms" not in scene:
                 continue
             for room_name, room in scene["rooms"].items():
                 neighbours = ", ".join(room.get("neighbor", [])) or "none"
-                lines.append(f"{room_name} (connects to: {neighbours})")
+                where = ""
+                if room.get("location") and room.get("size"):
+                    centre = ", ".join(f"{v:.2f}" for v in room["location"][:2])
+                    extent = ", ".join(f"{v:.2f}" for v in room["size"][:2])
+                    where = f", centred at ({centre}) spanning ({extent})"
+                lines.append(f"{room_name} (connects to: {neighbours}{where})")
                 for item_name, item in room.get("items", {}).items():
                     size = " x ".join(f"{v:.2f}" for v in item.get("size", []))
                     weight = item.get("weight")
@@ -326,6 +353,9 @@ class TripleSPlanner:
             gripper = config.get("urdf", {}).get("gripper", {})
             arm = config.get("urdf", {}).get("arm", {})
             spec = []
+            if config.get("position"):
+                at = ", ".join(f"{v:.2f}" for v in config["position"][:2])
+                spec.append(f"starts at ({at})")
             if gripper.get("max_opening"):
                 spec.append(f"gripper opens to {gripper['max_opening']:.3f} m")
             if arm.get("reach_height"):

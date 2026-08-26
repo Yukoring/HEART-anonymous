@@ -8,6 +8,12 @@ Conditions:
 - baseline_delta:   DELTA alone (no HEART)
 - heart_llm_cot:    HEART + LLM-CoT
 - heart_delta:      HEART + DELTA
+- baseline_triple_s: Triple-S alone (related-work baseline)
+
+Triple-S is not in the default set. It answers a different question from the
+others — how HEART compares against related work, rather than which planner
+HEART is attached to — and it brings its own multi-LLM reasoning, so there is no
+`heart_triple_s` counterpart to pair it with. Ask for it explicitly.
 
 Usage:
     # All scenes, all tasks (default)
@@ -21,6 +27,9 @@ Usage:
 
     # DELTA only comparison
     python experiments/run_planner.py --conditions baseline_delta heart_delta
+
+    # Related-work baseline
+    python experiments/run_planner.py --conditions baseline_triple_s
 """
 
 import argparse
@@ -45,6 +54,12 @@ PLANNER_CONDITIONS = [
     "heart_delta",        # HEART + DELTA
 ]
 
+# Runs only when named on the command line, so the default set stays the
+# planner-agnosticism comparison it has always been.
+EXTRA_CONDITIONS = [
+    "baseline_triple_s",  # Triple-S alone (related-work baseline)
+]
+
 
 def main():
     parser = argparse.ArgumentParser(description="Planner Comparison Experiment")
@@ -54,7 +69,9 @@ def main():
                         help="Task indices or 'all' (default: all)")
     parser.add_argument("--iterations", type=int, default=3)
     parser.add_argument("--budget", type=int, default=20000)
-    parser.add_argument("--conditions", nargs="+", default=PLANNER_CONDITIONS)
+    parser.add_argument("--conditions", nargs="+", default=PLANNER_CONDITIONS,
+                        choices=PLANNER_CONDITIONS + EXTRA_CONDITIONS,
+                        metavar="CONDITION")
     args = parser.parse_args()
 
     check_api_key()
