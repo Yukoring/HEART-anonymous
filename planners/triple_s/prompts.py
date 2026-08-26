@@ -69,8 +69,14 @@ SUMMARY_RULES = """Rules:
 replaces, without losing what makes the task work.
 2. Build on the existing action library. Do not introduce an action the library \
 does not define.
-3. Produce three fields: a one-line task description, a thought explaining the \
-ordering constraint that matters, and the example action sequence."""
+3. Produce exactly three fields, each on its own line, using these labels \
+verbatim and nothing else. No code fences, no numbering.
+
+[task description] one line naming the kind of task this generalises to
+[thought] the ordering constraint that makes it work
+[examples]
+action(...)
+action(...)"""
 
 
 def simplification_prompt(instruction: str, environment: str) -> str:

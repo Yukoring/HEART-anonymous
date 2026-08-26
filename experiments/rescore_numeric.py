@@ -88,8 +88,12 @@ def parse_plan_name(path: Path) -> Optional[Dict[str, str]]:
         planner, condition = "delta", rest[:-len("_delta")]
     elif rest.endswith("_llm_cot_pddl"):
         planner, condition = "llm_cot", rest[:-len("_llm_cot_pddl")]
+    elif rest.endswith("_triple_s_pddl"):
+        planner, condition = "triple_s", rest[:-len("_triple_s_pddl")]
     else:
-        return None  # natural-language plan, or a naming we do not recognise
+        # A natural-language plan — its converted counterpart carries the
+        # actions VAL reads — or a naming we do not recognise.
+        return None
 
     return {"task_id": task_id, "scene": scene, "iteration": iteration,
             "planner": planner, "condition": condition}

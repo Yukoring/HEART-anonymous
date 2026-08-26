@@ -81,6 +81,14 @@ EXPERIMENTS = {
         "planner_type": "delta",
         "description": "DELTA alone (baseline)",
     },
+    # Related-work baseline. Triple-S carries its own multi-LLM reasoning, so it
+    # runs standalone — HEART is not stacked on top of it.
+    "baseline_triple_s": {
+        "agents": None,
+        "allocator_type": None,
+        "planner_type": "triple_s",
+        "description": "Triple-S alone (related-work baseline)",
+    },
 
     # ==================== Allocator Component Ablation ====================
     # 4 conditions: isolate capacity planning and history penalty contributions
