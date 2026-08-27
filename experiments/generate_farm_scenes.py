@@ -76,8 +76,17 @@ SEEDS: Dict[int, Tuple[int, List[Tuple[str, str]]]] = {
     4: (2, [("ripe","ok"),("ripe","ok"),("ripe","ok"),("ripe","too_high"),
             ("ripe","too_wide"),("rotten","ok"),("unripe","too_high")]),
     5: (2, [("ripe","ok"),("ripe","ok"),("ripe","ok"),("ripe","too_high"),
-            ("ripe","too_wide"),("rotten","ok"),("rotten","too_wide"),("unripe","ok")]),
+            ("ripe","too_high"),("ripe","too_wide"),("rotten","ok"),("unripe","ok")]),
 }
+
+# Only one oversized tomato can be built, and the scenes are run one at a time,
+# so no scene may call for more than one at once.
+MAX_OVERSIZE_PER_SCENE = 1
+
+# The oversized model is built to look ripe, so it cannot stand in for a rotten
+# tomato. Rotten fruit that cannot be handled is therefore only represented by
+# height, not by width.
+OVERSIZE_RIPENESS = "ripe"
 
 # The rig has two stems and holds at most four tomatoes on each.
 MAX_STEMS = 2
@@ -107,6 +116,16 @@ def build(seed: int) -> Tuple[List[Tomato], List[str]]:
         raise ValueError(
             f"seed {seed}: {len(composition)} tomatoes on {stem_count} stems exceeds "
             f"the rig ({MAX_STEMS} stems, {MAX_PER_STEM} each)")
+    oversize = [ripeness for ripeness, physical in composition if physical == "too_wide"]
+    if len(oversize) > MAX_OVERSIZE_PER_SCENE:
+        raise ValueError(
+            f"seed {seed}: needs {len(oversize)} oversized tomatoes at once, only "
+            f"{MAX_OVERSIZE_PER_SCENE} can be built")
+    wrong = [r for r in oversize if r != OVERSIZE_RIPENESS]
+    if wrong:
+        raise ValueError(
+            f"seed {seed}: oversized tomato marked {wrong[0]}, but the model "
+            f"that exists looks {OVERSIZE_RIPENESS}")
     rng = random.Random(seed)
     stems = [f"stem_{i+1:02d}_0" for i in range(stem_count)]
 
