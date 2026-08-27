@@ -192,35 +192,84 @@ def _arm_chain(model: URDFModel) -> List[Tuple[str,str]]:
     chain = _longest_nonfixed_chain(model, exclude_pred=exclude)
     return chain
 
-def _reach_height(model: URDFModel, chain: List[Tuple[str,str]]) -> float|None:
-    """
-    Highest point the end-effector can reach, measured from the base frame.
+_REACH_SAMPLES = 200000
+_REACH_SEED = 1
 
-    Taken as the height of the first movable joint in the arm chain (the
-    shoulder, or the torso lift when the arm is mounted on a lifting column)
-    plus the length of the chain from there to the tip — i.e. the arm fully
-    extended upward. Prismatic lift stroke is already part of the chain, so it
-    needs no separate term.
+
+def _axis_rotations(axis, angles):
+    """Rotation matrices about `axis` for a batch of angles."""
+    import numpy as np
+    x, y, z = axis
+    c, s = np.cos(angles), np.sin(angles)
+    C = 1 - c
+    R = np.empty((angles.size, 3, 3))
+    R[:, 0, 0] = x*x*C + c;   R[:, 0, 1] = x*y*C - z*s; R[:, 0, 2] = x*z*C + y*s
+    R[:, 1, 0] = y*x*C + z*s; R[:, 1, 1] = y*y*C + c;   R[:, 1, 2] = y*z*C - x*s
+    R[:, 2, 0] = z*x*C - y*s; R[:, 2, 1] = z*y*C + x*s; R[:, 2, 2] = z*z*C + c
+    return R
+
+
+def _workspace(model: URDFModel, chain: List[Tuple[str,str]]) -> Tuple[float|None, float|None]:
     """
+    (max_reach, reach_height) — the arm's radius and its ceiling in the base frame.
+
+    Both are sampled by forward kinematics over the joint limits rather than by
+    summing the chain's segment lengths. That sum is an upper bound and not a
+    tight one: it adds offsets perpendicular to the arm's extension, which no
+    configuration can fold into reach. On a Summit XL + UR5e it overstates the
+    ceiling by roughly 0.36 m, enough to call an out-of-reach object reachable.
+
+    The two are computed together so they can never disagree about what the arm
+    can do — a reasoning agent shown both numbers will otherwise take whichever
+    is larger.
+
+    Sampling is seeded, so a robot's figures do not move between runs.
+    """
+    try:
+        import numpy as np
+    except ImportError:
+        return None, None
+
     Tmap, base = model.static_poses()
-    shoulder_idx = None
-    for i, (_, jn) in enumerate(chain):
-        if model.joints[jn].attrib.get('type') != 'fixed':
-            shoulder_idx = i
-            break
-    if shoulder_idx is None:
-        return None
+    joints = []
+    for child, jn in chain:
+        joint = model.joints[jn]
+        jtype = joint.attrib.get('type')
+        xyz, rpy = _parse_origin(joint.find('origin'))
+        axis = [0.0, 0.0, 1.0]
+        axis_el = joint.find('axis')
+        if axis_el is not None and 'xyz' in axis_el.attrib:
+            axis = [float(v) for v in axis_el.attrib['xyz'].split()]
+        norm = _norm(axis) or 1.0
+        axis = [a / norm for a in axis]
 
-    shoulder_link = chain[shoulder_idx][0]
-    if shoulder_link not in Tmap:
-        return None
-    shoulder_z = Tmap[shoulder_link][1][2]
+        lo, hi = -math.pi, math.pi
+        limit = joint.find('limit')
+        if limit is not None and jtype in ('revolute', 'prismatic'):
+            lo = float(limit.attrib.get('lower', lo if jtype == 'revolute' else 0.0))
+            hi = float(limit.attrib.get('upper', hi if jtype == 'revolute' else 0.0))
+        joints.append((jtype, np.array(xyz, float), np.array(_rpy_to_R(*rpy)),
+                       np.array(axis), lo, hi))
 
-    pts = [Tmap[c][1] for c, _ in chain[shoulder_idx:] if c in Tmap]
-    if len(pts) < 2:
-        return shoulder_z
-    segs = [_norm([pts[i+1][k]-pts[i][k] for k in range(3)]) for i in range(len(pts)-1)]
-    return shoulder_z + sum(segs)
+    if not joints:
+        return None, None
+
+    rng = np.random.default_rng(_REACH_SEED)
+    R = np.tile(np.eye(3), (_REACH_SAMPLES, 1, 1))
+    p = np.zeros((_REACH_SAMPLES, 3))
+    for jtype, xyz, R0, axis, lo, hi in joints:
+        p = p + np.einsum('nij,j->ni', R, xyz)
+        R = R @ R0
+        if jtype in ('revolute', 'continuous'):
+            R = R @ _axis_rotations(axis, rng.uniform(lo, hi, _REACH_SAMPLES))
+        elif jtype == 'prismatic':
+            p = p + np.einsum('nij,j->ni', R, axis) * rng.uniform(lo, hi, _REACH_SAMPLES)[:, None]
+
+    # The chain is expressed from its parent, so add that link's height.
+    root = chain[0][0]
+    parent = model.parents[root][0] if root in model.parents else base
+    offset = Tmap[parent][1][2] if parent in Tmap else 0.0
+    return float(np.linalg.norm(p, axis=1).max()), offset + float(p[:, 2].max())
 
 
 def _arm_specs(model: URDFModel) -> Dict[str,Any]:
@@ -256,14 +305,9 @@ def _arm_specs(model: URDFModel) -> Dict[str,Any]:
         if base in Tmap: pts.append(Tmap[base][1])
         for child,_ in chain:
             if child in Tmap: pts.append(Tmap[child][1])
-        reach = None; zspan = None
-        if len(pts) >= 2:
-            segs = [_norm([pts[i+1][k]-pts[i][k] for k in range(3)]) for i in range(len(pts)-1)]
-            reach = sum(segs)
-            zs = [p[2] for p in pts]
-            zspan = [min(zs), max(zs)]
+        reach, height = _workspace(model, chain)
         return {"has_arm": True, "num_arms": 1, "degrees_of_freedom": dof,
-                "max_reach": reach, "reach_height": _reach_height(model, chain)}
+                "max_reach": reach, "reach_height": height}
     
     # Count distinct arms (e.g., left vs right)
     arm_count = 0
@@ -286,16 +330,9 @@ def _arm_specs(model: URDFModel) -> Dict[str,Any]:
     # Use original single arm calculation for specs (take max/best arm)
     chain = _arm_chain(model)
     dof = sum(1 for _,jn in chain if model.joints[jn].attrib.get('type')!='fixed')
+    reach_height = None
     if dof > 0:
-        Tmap, base = model.static_poses()
-        pts = []
-        if base in Tmap: pts.append(Tmap[base][1])
-        for child,_ in chain:
-            if child in Tmap: pts.append(Tmap[child][1])
-        if len(pts) >= 2:
-            segs = [_norm([pts[i+1][k]-pts[i][k] for k in range(3)]) for i in range(len(pts)-1)]
-            max_reach = sum(segs)
-            zs = [p[2] for p in pts]
+        max_reach, reach_height = _workspace(model, chain)
         total_dof = dof * max(arm_count, 1)  # Multiply DOF by number of arms
     
     return {
@@ -303,7 +340,7 @@ def _arm_specs(model: URDFModel) -> Dict[str,Any]:
         "num_arms": arm_count,
         "degrees_of_freedom": total_dof,
         "max_reach": max_reach,
-        "reach_height": _reach_height(model, chain) if dof > 0 else None
+        "reach_height": reach_height
     }
 
 def _finger_length(model: URDFModel, link_name: str) -> float:

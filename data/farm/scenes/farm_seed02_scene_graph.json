@@ -1,0 +1,241 @@
+{
+  "Farm_Seed_02": {
+    "metadata": {
+      "function": "farm",
+      "floors": 1,
+      "floor_area": 12.0,
+      "gibson_split": null,
+      "seed": 2
+    },
+    "rooms": {
+      "dock_0": {
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "size": [
+          2.0,
+          2.0,
+          2.5
+        ],
+        "neighbor": [
+          "door_0",
+          "stem_01_0",
+          "stem_02_0"
+        ],
+        "items": {
+          "dock_station_01": {
+            "location": [
+              0.0,
+              0.0,
+              0.15
+            ],
+            "size": [
+              0.6,
+              0.6,
+              0.3
+            ],
+            "affordance": [
+              "place_on"
+            ]
+          }
+        }
+      },
+      "door_0": {
+        "location": [
+          0.0,
+          2.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          0.2,
+          2.2
+        ],
+        "neighbor": [
+          "dock_0",
+          "stem_01_0",
+          "stem_02_0"
+        ],
+        "items": {
+          "door_01": {
+            "location": [
+              0.0,
+              2.0,
+              1.0
+            ],
+            "size": [
+              0.05,
+              0.9,
+              2.0
+            ],
+            "affordance": [
+              "open",
+              "close"
+            ]
+          }
+        }
+      },
+      "stem_01_0": {
+        "location": [
+          0.0,
+          3.0,
+          0.0
+        ],
+        "size": [
+          1.5,
+          1.2,
+          2.5
+        ],
+        "neighbor": [
+          "dock_0",
+          "door_0",
+          "stem_02_0"
+        ],
+        "items": {
+          "stem1": {
+            "location": [
+              0.0,
+              3.0,
+              1.05
+            ],
+            "size": [
+              0.05,
+              0.05,
+              2.1
+            ],
+            "affordance": []
+          },
+          "tomato_01": {
+            "location": [
+              0.15,
+              3.0,
+              1.118
+            ],
+            "size": [
+              0.162,
+              0.162,
+              0.154
+            ],
+            "weight": 0.2,
+            "affordance": [
+              "pick"
+            ],
+            "state": [
+              "ripe"
+            ]
+          },
+          "tomato_03": {
+            "location": [
+              0.2,
+              3.0,
+              0.915
+            ],
+            "size": [
+              0.058,
+              0.058,
+              0.055
+            ],
+            "weight": 0.165,
+            "affordance": [
+              "pick"
+            ],
+            "state": [
+              "rotten"
+            ]
+          },
+          "tomato_05": {
+            "location": [
+              0.25,
+              3.0,
+              1.21
+            ],
+            "size": [
+              0.066,
+              0.066,
+              0.063
+            ],
+            "weight": 0.167,
+            "affordance": [
+              "pick"
+            ],
+            "state": [
+              "ripe"
+            ]
+          }
+        }
+      },
+      "stem_02_0": {
+        "location": [
+          0.0,
+          4.5,
+          0.0
+        ],
+        "size": [
+          1.5,
+          1.2,
+          2.5
+        ],
+        "neighbor": [
+          "dock_0",
+          "door_0",
+          "stem_01_0"
+        ],
+        "items": {
+          "stem2": {
+            "location": [
+              0.0,
+              4.5,
+              1.05
+            ],
+            "size": [
+              0.05,
+              0.05,
+              2.1
+            ],
+            "affordance": []
+          },
+          "tomato_02": {
+            "location": [
+              0.15,
+              4.5,
+              0.697
+            ],
+            "size": [
+              0.067,
+              0.067,
+              0.064
+            ],
+            "weight": 0.191,
+            "affordance": [
+              "pick"
+            ],
+            "state": [
+              "ripe"
+            ]
+          },
+          "tomato_04": {
+            "location": [
+              0.2,
+              4.5,
+              0.765
+            ],
+            "size": [
+              0.069,
+              0.069,
+              0.066
+            ],
+            "weight": 0.249,
+            "affordance": [
+              "pick"
+            ],
+            "state": [
+              "unripe"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

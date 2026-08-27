@@ -29,8 +29,16 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent.parent  # HEART/
 
 
-def get_pddl_paths(task_id: str, scene_name: str) -> Dict[str, str]:
-    """Get ground truth PDDL domain and problem file paths."""
+def get_pddl_paths(task_id: str, scene_name: str,
+                   pddl_paths: Optional[Dict[str, str]] = None) -> Dict[str, str]:
+    """
+    Ground truth PDDL domain and problem file paths.
+
+    `pddl_paths` overrides the household task registry, which is how the farm
+    scenes — generated rather than registered — are validated with the same code.
+    """
+    if pddl_paths:
+        return pddl_paths
     from heart.configs.tasks import get_pddl_domain_path, get_pddl_problem_path
     return {
         "domain": str(PROJECT_ROOT / get_pddl_domain_path(task_id)),
@@ -84,6 +92,7 @@ def convert_llm_cot_to_pddl(
     task_id: str,
     scene_name: str,
     model_name: str = "gpt-4o",
+    pddl_paths: Optional[Dict[str, str]] = None,
 ) -> List[str]:
     """
     Convert LLM-CoT natural language plan to PDDL action format using LLM.
@@ -102,8 +111,7 @@ def convert_llm_cot_to_pddl(
     from langchain_openai import ChatOpenAI
 
     # Load domain PDDL (actions only, NO problem/goal)
-    pddl_paths = get_pddl_paths(task_id, scene_name)
-    domain_path = pddl_paths["domain"]
+    domain_path = get_pddl_paths(task_id, scene_name, pddl_paths)["domain"]
 
     if not os.path.isfile(domain_path):
         print(f"[Validator] Domain PDDL not found: {domain_path}")
@@ -181,6 +189,7 @@ def validate_plan(
     task_id: str,
     scene_name: str,
     planner_type: str = "llm_cot",
+    pddl_paths: Optional[Dict[str, str]] = None,
 ) -> Dict[str, Any]:
     """
     Validate a plan against ground truth PDDL.
@@ -210,7 +219,7 @@ def validate_plan(
             "conversion_time": 0.0,
         }
 
-    pddl_paths = get_pddl_paths(task_id, scene_name)
+    paths = get_pddl_paths(task_id, scene_name, pddl_paths)
 
     # Convert plan to PDDL format if needed
     conversion_time = 0.0
@@ -220,7 +229,8 @@ def validate_plan(
     else:
         # LLM-CoT: convert using LLM
         convert_start = time.time()
-        pddl_actions = convert_llm_cot_to_pddl(plan_steps, task_id, scene_name)
+        pddl_actions = convert_llm_cot_to_pddl(plan_steps, task_id, scene_name,
+                                               pddl_paths=paths)
         conversion_time = time.time() - convert_start
         print(f"[Validator] Converted {len(plan_steps)} actions → {len(pddl_actions)} PDDL actions ({conversion_time:.1f}s)")
 
@@ -238,7 +248,7 @@ def validate_plan(
         plan_file = f.name
 
     try:
-        result = run_val(pddl_paths["domain"], pddl_paths["problem"], plan_file)
+        result = run_val(paths["domain"], paths["problem"], plan_file)
         result["pddl_plan"] = pddl_actions
         result["conversion_time"] = conversion_time
         return result
