@@ -14,13 +14,13 @@ falls.
 
 | tomato | stem | height (m) | width (m) | ripeness | violates | expected |
 |---|---|---|---|---|---|---|
-| tomato_01 | stem_01_0 | 0.97 | 0.167 | rotten | too_wide | skip (too wide) |
+| tomato_01 | stem_01_0 | 0.97 | 0.073 | rotten | — | discard |
 | tomato_03 | stem_01_0 | 0.91 | 0.055 | ripe | — | collect |
 | tomato_05 | stem_01_0 | 0.58 | 0.071 | unripe | — | leave |
-| tomato_07 | stem_01_0 | 1.15 | 0.059 | rotten | — | discard |
+| tomato_07 | stem_01_0 | 1.15 | 0.146 | ripe | too_wide | skip (too wide) |
 | tomato_02 | stem_02_0 | 1.94 | 0.060 | ripe | too_high | skip (out of reach) |
 | tomato_04 | stem_02_0 | 0.67 | 0.073 | ripe | — | collect |
 | tomato_06 | stem_02_0 | 0.94 | 0.058 | ripe | — | collect |
-| tomato_08 | stem_02_0 | 1.24 | 0.166 | ripe | too_wide | skip (too wide) |
+| tomato_08 | stem_02_0 | 2.05 | 0.072 | ripe | too_high | skip (out of reach) |
 
 Stems: stem_01_0, stem_02_0
