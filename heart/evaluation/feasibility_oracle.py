@@ -49,12 +49,14 @@ PUBLISHED_PAYLOAD_KG = {
     "fetch_gripper": 6.0,
     "jr2_kinova_gripper": 2.6,
     "quadrotor": None,
+    "summit_ur5e": 5.0,   # UR5e rated payload
 }
 
 ROBOT_URDFS = {
     "fetch_gripper": "data/robots/fetch_gripper.urdf",
     "quadrotor": "data/robots/quadrotor.urdf",
     "jr2_kinova_gripper": "data/robots/jr2_kinova_gripper.urdf",
+    "summit_ur5e": "data/robots/summit_ur5e.urdf",
 }
 
 

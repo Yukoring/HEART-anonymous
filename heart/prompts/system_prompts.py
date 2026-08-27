@@ -155,8 +155,12 @@ CRITICAL CALCULATION GUIDELINES:
    - **If any property data is not explicitly provided in the scene, ASSUME it is within feasible range (PASS by default).** Only judge infeasibility based on data that is actually available — never reject an action due to missing information. This includes missing sensor specs (camera resolution, FOV), missing weight/inertia, or missing material data.
 
    **Vertical Reachability Check** (if position data available):
-   - Compare object height(z) with robot_z + torso_lift + max_reach
-   - Show: "height=X.Xm vs max_reach=Y.Ym → PASS/FAIL"
+   - Compare object height(z) against reach_height_cm. That figure is already
+     the arm's ceiling above the ground and includes any lifting column, so add
+     nothing to it — in particular do not add the robot's own height or
+     max_reach, which is a radius from the base and would double-count.
+   - Use max_reach_cm only when reach_height_cm is absent.
+   - Show: "height=X.Xm vs reach_height=Y.Ym → PASS/FAIL"
 
    When multiple objects need checking, check EACH object individually with actual values.
 
@@ -350,8 +354,12 @@ CRITICAL CALCULATION GUIDELINES:
    - Show: "weight=X.Xkg vs payload=Y.Ykg → PASS/FAIL"
 
    **Vertical Reachability Check** (if position data available):
-   - Compare object height(z) with robot_z + torso_lift + max_reach
-   - Show: "height=X.Xm vs max_reach=Y.Ym → PASS/FAIL"
+   - Compare object height(z) against reach_height_cm. That figure is already
+     the arm's ceiling above the ground and includes any lifting column, so add
+     nothing to it — in particular do not add the robot's own height or
+     max_reach, which is a radius from the base and would double-count.
+   - Use max_reach_cm only when reach_height_cm is absent.
+   - Show: "height=X.Xm vs reach_height=Y.Ym → PASS/FAIL"
 
    When multiple objects need checking, check EACH object individually with actual values.
 

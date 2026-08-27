@@ -325,8 +325,13 @@ def _filter_for_feasibility(env_data: Dict[str, Any]) -> Dict[str, Any]:
                             if arm.get("has_arm"):
                                 if arm.get("max_reach") is not None:
                                     robot_metrics["max_reach_cm"] = round(arm["max_reach"] * 100, 2)
-                                # if arm.get("workspace_height"):
-                                #     robot_metrics["workspace_height_range"] = arm["workspace_height"]
+                                # Absolute ceiling above the ground, already
+                                # including any lifting column. Without it the
+                                # agent has to infer a height limit from a
+                                # radius, which overshoots on arms mounted high
+                                # on their base.
+                                if arm.get("reach_height") is not None:
+                                    robot_metrics["reach_height_cm"] = round(arm["reach_height"] * 100, 2)
                                 if arm.get("degrees_of_freedom") is not None:
                                     robot_metrics["arm_dof"] = arm["degrees_of_freedom"]
                                 if arm.get("num_arms") is not None:
