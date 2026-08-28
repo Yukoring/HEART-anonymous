@@ -2,7 +2,7 @@
 
 Instruction (identical for every seed and condition):
 
-> Have the robot harvest every ripe tomato, and leave the unripe ones.
+> Have the robot harvest only the ripe tomatoes.
 
 Robot: Summit XL + UR5e — reach 1.71 m, gripper opens to
 0.1245 m, rated payload 5.0 kg.
