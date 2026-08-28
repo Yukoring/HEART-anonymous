@@ -8,14 +8,20 @@ and running every condition on the same scene makes the comparison paired.
 
 Each tomato carries two independent labels:
 
-  ripeness   ripe / unripe / rotten      -> what should be done with it
+  ripeness   ripe / unripe               -> whether it should be picked at all
   reachable  ok / too_high / too_wide    -> whether it can be done at all
 
-The discriminating cases are the ones where those disagree. A ripe tomato out
-of reach must be left alone even though the instruction asks for ripe fruit,
-and a rotten one out of reach cannot be discarded because it cannot be picked
-up in the first place. A planner that reasons about only one of the two labels
-fails on those.
+The discriminating case is a ripe tomato out of reach: the instruction asks for
+ripe fruit, so a planner reading only the ripeness label goes for it, while one
+reading only the geometry collects unripe fruit it can reach. Both labels have
+to be read.
+
+An earlier version also had rotten fruit to be thrown away. It was dropped
+because it turned out to measure something else: HEART's synthesis stage lists
+rotten produce under "objects the robot cannot use", conflating a state with a
+physical limit, so the planner left it alone instead of discarding it. That is a
+real defect and worth recording, but it has nothing to do with whether the
+oracle predicts reality, which is what this evaluation is for.
 
 The seeds are a designed sweep rather than a random draw: at this size a
 random draw leaves cells of the matrix empty. Coverage is asserted at the end of the run.
@@ -44,48 +50,48 @@ PROBLEM_OUT = PROJECT_ROOT / "data" / "pddl" / "problem_num"
 SHEET_OUT = PROJECT_ROOT / "data" / "farm" / "placement"
 
 ROBOT = "summit_ur5e"
-INSTRUCTION = ("Harvest all the ripe tomatoes and load them onto the robot, "
-               "discard any rotten ones, then return to the dock.")
+INSTRUCTION = ("Have the robot harvest every ripe tomato, "
+               "and leave the unripe ones.")
 
 # Bands chosen to clear the robot's limits from both sides.
 REACHABLE_Z = (0.45, 1.25)
 OUT_OF_REACH_Z = (1.85, 2.05)
 NORMAL_W = (0.055, 0.075)
-OVERSIZE_W = (0.14, 0.17)
+# Well clear of the 0.1245 m jaws. An earlier range started at 0.14, which left
+# only 1.5 cm of margin, and that is where HEART's size judgements failed while
+# its height judgements — 20 to 30 cm clear of the limit — never did. Width is
+# the harder axis to read, so the gap is made comparable.
+OVERSIZE_W = (0.18, 0.20)
 WEIGHT = (0.10, 0.25)          # kg — never near the 5 kg payload
 
 # (ripeness, physical) per tomato. "ok" means the oracle can grasp it.
 #
 # Five scenes rather than ten, each densely loaded. Physically rebuilding a
 # scene is the expensive step, so diversity is bought within a scene instead of
-# across scenes: every one carries eight or nine tomatoes spanning the whole
-# ripeness x reachability matrix. Five scenes still leaves the method
-# comparison five independent units, where three would leave it three.
-# Ordered by difficulty. The first scene is close to the simplest thing that
-# still tests anything — two tomatoes to collect, one to throw away, one out of
-# reach — and the last carries four traps at once. A gradient is worth more than
-# five scenes of the same weight: if every condition fails the hard scenes and
-# passes the easy ones, that is a result, whereas five uniformly hard scenes
-# only say everything failed.
+# across scenes. Five still leaves the method comparison five independent units,
+# where three would leave it three.
+#
+# Ordered by difficulty: the first is close to the simplest arrangement that
+# tests anything — two to collect, one out of reach, one unripe — and the last
+# carries three traps. A gradient is worth more than five scenes of the same
+# weight, which could only ever say that everything failed.
 SEEDS: Dict[int, Tuple[int, List[Tuple[str, str]]]] = {
-    1: (2, [("ripe","ok"),("ripe","ok"),("ripe","too_high"),("rotten","ok")]),
-    2: (2, [("ripe","ok"),("ripe","ok"),("ripe","too_wide"),("rotten","ok"),
+    1: (2, [("ripe","ok"),("ripe","ok"),("ripe","too_high"),("unripe","ok")]),
+    2: (2, [("ripe","ok"),("ripe","ok"),("ripe","too_wide"),("unripe","ok"),
             ("unripe","ok")]),
     3: (2, [("ripe","ok"),("ripe","ok"),("ripe","ok"),("ripe","too_high"),
-            ("rotten","ok"),("rotten","too_high")]),
+            ("unripe","ok"),("unripe","too_high")]),
     4: (2, [("ripe","ok"),("ripe","ok"),("ripe","ok"),("ripe","too_high"),
-            ("ripe","too_wide"),("rotten","ok"),("unripe","too_high")]),
+            ("ripe","too_wide"),("unripe","ok"),("unripe","too_high")]),
     5: (2, [("ripe","ok"),("ripe","ok"),("ripe","ok"),("ripe","too_high"),
-            ("ripe","too_high"),("ripe","too_wide"),("rotten","ok"),("unripe","ok")]),
+            ("ripe","too_high"),("ripe","too_wide"),("unripe","ok"),("unripe","ok")]),
 }
 
 # Only one oversized tomato can be built, and the scenes are run one at a time,
 # so no scene may call for more than one at once.
 MAX_OVERSIZE_PER_SCENE = 1
 
-# The oversized model is built to look ripe, so it cannot stand in for a rotten
-# tomato. Rotten fruit that cannot be handled is therefore only represented by
-# height, not by width.
+# The one oversized model that exists is built to look ripe.
 OVERSIZE_RIPENESS = "ripe"
 
 # The rig has two stems and holds at most four tomatoes on each.
@@ -107,7 +113,7 @@ class Tomato:
     def expected(self) -> str:
         if self.physical != "ok":
             return "skip (out of reach)" if self.physical == "too_high" else "skip (too wide)"
-        return {"ripe": "collect", "rotten": "discard", "unripe": "leave"}[self.ripeness]
+        return {"ripe": "collect", "unripe": "leave"}[self.ripeness]
 
 
 def build(seed: int) -> Tuple[List[Tomato], List[str]]:
@@ -149,24 +155,21 @@ def build(seed: int) -> Tuple[List[Tomato], List[str]]:
 
 
 def scene_graph(seed: int, tomatoes: List[Tomato], stems: List[str]) -> Dict:
-    rooms: Dict[str, Dict] = {
-        "dock_0": {"location": [0.0, 0.0, 0.0], "size": [2.0, 2.0, 2.5],
-                   "neighbor": ["door_0"] + stems,
-                   "items": {"dock_station_01": {"location": [0.0, 0.0, 0.15],
-                                                 "size": [0.6, 0.6, 0.3],
-                                                 "affordance": ["place_on"]}}},
-        "door_0": {"location": [0.0, 2.0, 0.0], "size": [1.0, 0.2, 2.2],
-                   "neighbor": ["dock_0"] + stems,
-                   "items": {"door_01": {"location": [0.0, 2.0, 1.0],
-                                         "size": [0.05, 0.9, 2.0],
-                                         "affordance": ["open", "close"]}}},
-    }
+    """
+    Stems and their fruit, and nothing else.
+
+    An earlier version also carried a dock station and a door. Neither was part
+    of the task, and both afforded actions the domain does not define — a plan
+    that opened the door would have had nowhere to map to. They are gone; the
+    scene is now exactly what the instruction talks about.
+    """
+    rooms: Dict[str, Dict] = {}
     for i, stem in enumerate(stems):
         y = 3.0 + 1.5 * i
         rooms[stem] = {
             "location": [0.0, y, 0.0], "size": [1.5, 1.2, 2.5],
-            "neighbor": ["dock_0", "door_0"] + [s for s in stems if s != stem],
-            "items": {stem.replace("_0", "").replace("stem_", "stem_"):
+            "neighbor": [s for s in stems if s != stem],
+            "items": {stem.replace("_0", ""):
                       {"location": [0.0, y, 1.05], "size": [0.05, 0.05, 2.10],
                        "affordance": []}},
         }
@@ -188,10 +191,13 @@ def scene_graph(seed: int, tomatoes: List[Tomato], stems: List[str]) -> Dict:
 def problem_pddl(seed: int, tomatoes: List[Tomato], stems: List[str],
                  goals: Dict[str, List[str]]) -> str:
     cap = get_capability(ROBOT)
-    rooms = ["dock_0", "door_0"] + stems
+    rooms = list(stems)
     names = " ".join(t.name for t in tomatoes)
 
-    init = [f"        (agent_at robot dock_0)", "", "        (room_is_dock dock_0)", ""]
+    # The robot starts at the first stem, not the dock. With the return trip
+    # gone the dock had no part left in the task, and starting there only added
+    # a navigation step every plan had to open with.
+    init = [f"        (agent_at robot {stems[0]})", ""]
     for a in rooms:
         for b in rooms:
             if a != b:
@@ -206,16 +212,26 @@ def problem_pddl(seed: int, tomatoes: List[Tomato], stems: List[str],
              f"        (= (agent_reach robot) {cap.reach_height:.3f})"
              f" (= (agent_gripper robot) {cap.gripper_opening:.4f})"]
 
+    # Returning to the dock is not part of the goal. It is not what the task is
+    # about, and requiring it failed plans that had handled every tomato
+    # correctly — which measures tidiness, not physical reasoning.
+    #
+    # The unripe fruit is named negatively. A goal that only lists what must be
+    # collected is satisfied by a plan that collects everything within reach,
+    # so without these the ripeness half of the task is not scored at all.
+    #
+    # The goal demands every ripe tomato, and the instruction now says so too.
+    # It previously read "only the ripe tomatoes", which stresses which fruit to
+    # take but not that all of them must be taken — and the plans showed it,
+    # stopping after one tomato per stem where a stem held two.
     goal_lines = [f"        (item_collected {n})" for n in goals["collect"]]
-    goal_lines += [f"        (item_discarded {n})" for n in goals["discard"]]
-    goal_lines.append("        (agent_at robot dock_0)")
+    goal_lines += [f"        (not (item_collected {n}))" for n in goals["leave"]]
 
     return f"""(define (problem farm_harvest_seed{seed:02d})
     (:domain farm_harvest)
 
     ; Goal derived from the oracle, not hand-written: every ripe tomato the
-    ; robot can actually grasp is collected, every rotten one it can grasp is
-    ; discarded, and the rest are left where they are.
+    ; robot can actually grasp is collected, and the rest are left where they are.
     (:objects
         robot - agent
         {' '.join(rooms)} - room
@@ -265,10 +281,10 @@ def main() -> int:
     for directory in (SCENE_OUT, PROBLEM_OUT, SHEET_OUT):
         directory.mkdir(parents=True, exist_ok=True)
 
-    coverage = {"ripe/ok": 0, "ripe/blocked": 0, "rotten/ok": 0,
-                "rotten/blocked": 0, "unripe/ok": 0, "unripe/blocked": 0,
+    coverage = {"ripe/ok": 0, "ripe/blocked": 0,
+                "unripe/ok": 0, "unripe/blocked": 0,
                 "too_high": 0, "too_wide": 0}
-    print(f"{'seed':>4} {'stems':>6} {'tomatoes':>9} {'collect':>8} {'discard':>8} {'skip':>5}")
+    print(f"{'seed':>4} {'stems':>6} {'tomatoes':>9} {'collect':>8} {'leave':>6} {'skip':>5}")
 
     for seed in sorted(SEEDS):
         tomatoes, stems = build(seed)
@@ -277,7 +293,7 @@ def main() -> int:
         # Verify the intended labels against the oracle rather than trusting them.
         items = {n: i for r in scene[f"Farm_Seed_{seed:02d}"]["rooms"].values()
                  for n, i in r.get("items", {}).items()}
-        goals = {"collect": [], "discard": []}
+        goals = {"collect": [], "leave": []}
         for t in tomatoes:
             feasible = graspable(ROBOT, items[t.name])[0]
             if feasible != (t.physical == "ok"):
@@ -286,8 +302,8 @@ def main() -> int:
                     f"{'graspable' if feasible else 'not graspable'}")
             if feasible and t.ripeness == "ripe":
                 goals["collect"].append(t.name)
-            elif feasible and t.ripeness == "rotten":
-                goals["discard"].append(t.name)
+            elif feasible and t.ripeness == "unripe":
+                goals["leave"].append(t.name)
 
             key = f"{t.ripeness}/{'ok' if t.physical == 'ok' else 'blocked'}"
             coverage[key] += 1
@@ -301,9 +317,10 @@ def main() -> int:
         (SHEET_OUT / f"farm_seed{seed:02d}.md").write_text(
             placement_sheet(seed, tomatoes, stems))
 
-        skipped = len(tomatoes) - len(goals["collect"]) - len(goals["discard"])
+        blocked = sum(1 for t in tomatoes if t.physical != "ok")
+        leave = len(tomatoes) - len(goals["collect"]) - blocked
         print(f"{seed:4} {len(stems):6} {len(tomatoes):9} "
-              f"{len(goals['collect']):8} {len(goals['discard']):8} {skipped:5}")
+              f"{len(goals['collect']):8} {leave:6} {blocked:5}")
 
     print("\nCoverage across the seeds")
     for key, count in coverage.items():

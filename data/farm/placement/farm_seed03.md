@@ -2,7 +2,7 @@
 
 Instruction (identical for every seed and condition):
 
-> Harvest all the ripe tomatoes and load them onto the robot, discard any rotten ones, then return to the dock.
+> Have the robot harvest every ripe tomato, and leave the unripe ones.
 
 Robot: Summit XL + UR5e — reach 1.71 m, gripper opens to
 0.1245 m, rated payload 5.0 kg.
@@ -16,9 +16,9 @@ falls.
 |---|---|---|---|---|---|---|
 | tomato_01 | stem_01_0 | 0.95 | 0.056 | ripe | — | collect |
 | tomato_03 | stem_01_0 | 2.05 | 0.064 | ripe | too_high | skip (out of reach) |
-| tomato_05 | stem_01_0 | 0.96 | 0.072 | rotten | — | discard |
+| tomato_05 | stem_01_0 | 0.96 | 0.072 | unripe | — | leave |
 | tomato_02 | stem_02_0 | 1.12 | 0.060 | ripe | — | collect |
-| tomato_04 | stem_02_0 | 1.95 | 0.068 | rotten | too_high | skip (out of reach) |
+| tomato_04 | stem_02_0 | 1.95 | 0.068 | unripe | too_high | skip (out of reach) |
 | tomato_06 | stem_02_0 | 1.04 | 0.068 | ripe | — | collect |
 
 Stems: stem_01_0, stem_02_0
