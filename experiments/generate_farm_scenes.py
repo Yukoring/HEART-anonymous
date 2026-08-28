@@ -50,8 +50,7 @@ PROBLEM_OUT = PROJECT_ROOT / "data" / "pddl" / "problem_num"
 SHEET_OUT = PROJECT_ROOT / "data" / "farm" / "placement"
 
 ROBOT = "summit_ur5e"
-INSTRUCTION = ("Have the robot harvest every ripe tomato, "
-               "and leave the unripe ones.")
+INSTRUCTION = "Have the robot harvest only the ripe tomatoes."
 
 # Bands chosen to clear the robot's limits from both sides.
 REACHABLE_Z = (0.45, 1.25)
@@ -220,10 +219,14 @@ def problem_pddl(seed: int, tomatoes: List[Tomato], stems: List[str],
     # collected is satisfied by a plan that collects everything within reach,
     # so without these the ripeness half of the task is not scored at all.
     #
-    # The goal demands every ripe tomato, and the instruction now says so too.
-    # It previously read "only the ripe tomatoes", which stresses which fruit to
-    # take but not that all of them must be taken — and the plans showed it,
-    # stopping after one tomato per stem where a stem held two.
+    # The instruction stays short. Spelling out "every ripe tomato, and leave
+    # the unripe ones" was tried, to push against plans that stopped after one
+    # tomato per stem. Plan success did not move — the omissions fell from five
+    # to one, but were replaced by plans that grabbed a second tomato while
+    # still holding the first, reached for an oversized one, or failed to
+    # generate at all. The completeness limit sits in the planner, not in how
+    # the task is worded, and the shorter instruction fails in one way rather
+    # than three.
     goal_lines = [f"        (item_collected {n})" for n in goals["collect"]]
     goal_lines += [f"        (not (item_collected {n}))" for n in goals["leave"]]
 
