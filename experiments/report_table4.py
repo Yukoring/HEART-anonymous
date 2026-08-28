@@ -21,7 +21,7 @@ import re
 import sys
 import zipfile
 from collections import defaultdict
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 from xml.etree import ElementTree as ET
 
 NS = {"table": "urn:oasis:names:tc:opendocument:xmlns:table:1.0",
@@ -30,20 +30,21 @@ NS = {"table": "urn:oasis:names:tc:opendocument:xmlns:table:1.0",
 SCENES = [("BW", "Beechwood_0"), ("BN", "Benevolence_1"), ("MR", "Merom_1")]
 MEROM_TASKS = {"mr_0", "mr_1", "mr_2", "mr_5", "mr_6", "mr_7", "mr_8", "mr_9"}
 
-# Quoted from Table IV of the submitted manuscript: (PlanSR, ci, step, plan_tok, total_tok)
+# Quoted from Table IV of the submitted manuscript, each as (value, half-width
+# of its 95% interval): PlanSR, step ratio, planner tokens, total tokens.
 PUBLISHED = {
-    ("BW", "w/o HEART", "LLM-CoT"): (56.7, 7.9, 1.16, 11.4, 11.4),
-    ("BW", "+ HEART",   "LLM-CoT"): (77.3, 6.7, 1.09, 12.5, 125.9),
-    ("BW", "w/o HEART", "DELTA"):   (64.0, 7.7, 1.07, 39.3, 39.3),
-    ("BW", "+ HEART",   "DELTA"):   (86.0, 5.6, 1.07, 45.6, 161.4),
-    ("BN", "w/o HEART", "LLM-CoT"): (16.7, 6.0, 1.01, 10.1, 10.1),
-    ("BN", "+ HEART",   "LLM-CoT"): (60.7, 7.8, 1.05, 11.2, 117.6),
-    ("BN", "w/o HEART", "DELTA"):   (6.7, 4.0, 1.17, 38.5, 38.5),
-    ("BN", "+ HEART",   "DELTA"):   (74.0, 7.0, 1.09, 43.1, 148.9),
-    ("MR", "w/o HEART", "LLM-CoT"): (22.5, 9.2, 1.44, 12.2, 12.2),
-    ("MR", "+ HEART",   "LLM-CoT"): (65.0, 10.5, 1.33, 13.3, 150.8),
-    ("MR", "w/o HEART", "DELTA"):   (18.8, 8.6, 1.32, 42.7, 42.7),
-    ("MR", "+ HEART",   "DELTA"):   (76.2, 9.3, 1.07, 46.8, 181.0),
+    ("BW", "w/o HEART", "LLM-CoT"): ((56.7, 7.9), (1.16, 0.16), (11.4, 0.3), (11.4, 0.3)),
+    ("BW", "+ HEART",   "LLM-CoT"): ((77.3, 6.7), (1.09, 0.12), (12.5, 0.5), (125.9, 32.8)),
+    ("BW", "w/o HEART", "DELTA"):   ((64.0, 7.7), (1.07, 0.09), (39.3, 1.4), (39.3, 1.4)),
+    ("BW", "+ HEART",   "DELTA"):   ((86.0, 5.6), (1.07, 0.09), (45.6, 2.1), (161.4, 36.9)),
+    ("BN", "w/o HEART", "LLM-CoT"): ((16.7, 6.0), (1.01, 0.05), (10.1, 0.1), (10.1, 0.1)),
+    ("BN", "+ HEART",   "LLM-CoT"): ((60.7, 7.8), (1.05, 0.09), (11.2, 0.3), (117.6, 28.6)),
+    ("BN", "w/o HEART", "DELTA"):   ((6.7, 4.0), (1.17, 0.17), (38.5, 2.3), (38.5, 2.3)),
+    ("BN", "+ HEART",   "DELTA"):   ((74.0, 7.0), (1.09, 0.18), (43.1, 2.4), (148.9, 28.6)),
+    ("MR", "w/o HEART", "LLM-CoT"): ((22.5, 9.2), (1.44, 0.15), (12.2, 0.1), (12.2, 0.1)),
+    ("MR", "+ HEART",   "LLM-CoT"): ((65.0, 10.5), (1.33, 0.12), (13.3, 0.3), (150.8, 36.8)),
+    ("MR", "w/o HEART", "DELTA"):   ((18.8, 8.6), (1.32, 0.38), (42.7, 3.8), (42.7, 3.8)),
+    ("MR", "+ HEART",   "DELTA"):   ((76.2, 9.3), (1.07, 0.11), (46.8, 2.7), (181.0, 38.7)),
 }
 
 
@@ -80,6 +81,24 @@ def binomial_ci(successes: int, n: int) -> float:
     return 1.96 * math.sqrt(p * (1 - p) / n) * 100
 
 
+def mean_ci(values: List[float]) -> Tuple[float, float]:
+    """
+    (mean, half-width of the 95% interval).
+
+    The manuscript reports every continuous column this way, so the new row has
+    to as well — a mean with no interval beside four that have one invites the
+    reader to treat it as more precise than it is.
+    """
+    n = len(values)
+    if n == 0:
+        return float("nan"), float("nan")
+    mean = sum(values) / n
+    if n == 1:
+        return mean, 0.0
+    variance = sum((v - mean) ** 2 for v in values) / (n - 1)
+    return mean, 1.96 * math.sqrt(variance / n)
+
+
 def load_triple_s(results_root: str) -> Dict[str, List[dict]]:
     """Newest completed Triple-S run per scene."""
     by_scene: Dict[str, List[dict]] = {}
@@ -105,24 +124,32 @@ def summarise(rows: List[dict], gt_steps: Dict[str, int]) -> Optional[dict]:
 
     ratios = [int(r["plan_steps_count"]) / gt_steps[r["task_id"]]
               for r in valid if r["task_id"] in gt_steps and int(r["plan_steps_count"])]
-    mean = lambda xs: sum(xs) / len(xs) if xs else float("nan")
+    plan_tok = [int(r.get("planner_tokens") or 0) / 1000 for r in rows]
+    total_tok = [int(r.get("workflow_total_tokens") or 0) / 1000 for r in rows]
+
+    step_mean, step_ci = mean_ci(ratios)
+    plan_mean, plan_ci = mean_ci(plan_tok)
+    total_mean, total_ci = mean_ci(total_tok)
 
     return {
         "n": n,
         "valid": len(valid),
         "plan_sr": len(valid) / n * 100,
         "ci": binomial_ci(len(valid), n),
-        "step_ratio": mean(ratios),
+        "step_ratio": step_mean, "step_ratio_ci": step_ci,
         "step_ratio_n": len(ratios),
-        "plan_tok": mean([int(r.get("planner_tokens") or 0) for r in rows]) / 1000,
-        "total_tok": mean([int(r.get("workflow_total_tokens") or 0) for r in rows]) / 1000,
+        "plan_tok": plan_mean, "plan_tok_ci": plan_ci,
+        "total_tok": total_mean, "total_tok_ci": total_ci,
     }
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--results", default="results")
-    parser.add_argument("--exp", default="../exp")
+    # The workbooks at the workspace root are the ones behind the published
+    # table; the copies under exp/ are earlier drafts and disagree — Merom
+    # there covers five tasks where the paper reports eight.
+    parser.add_argument("--workbooks", default="..")
     args = parser.parse_args()
 
     triple_s = load_triple_s(args.results)
@@ -131,27 +158,30 @@ def main() -> int:
         return 1
 
     header = (f"{'Scene':<6} {'Config':<12} {'Planner':<9} "
-              f"{'PlanSR (%)':>15} {'Step Ratio':>11} {'Plan Tok(k)':>12} {'Total Tok(k)':>13}")
+              f"{'PlanSR (%)':>16} {'Step Ratio':>15} {'Plan Tok(k)':>16} {'Total Tok(k)':>17}")
     print(header)
     print("-" * len(header))
 
     for abbr, scene in SCENES:
-        gt = ground_truth_steps(f"{args.exp}/TaskPlanning_{abbr}.ods")
+        gt = ground_truth_steps(f"{args.workbooks}/TaskPlanning_{abbr}.ods")
         for config in ("w/o HEART", "+ HEART"):
             for planner in ("LLM-CoT", "DELTA"):
-                sr, ci, step, plan_tok, total_tok = PUBLISHED[(abbr, config, planner)]
+                sr, step, plan_tok, total_tok = PUBLISHED[(abbr, config, planner)]
                 print(f"{abbr:<6} {config:<12} {planner:<9} "
-                      f"{sr:9.1f} ± {ci:<3.1f} {step:11.2f} {plan_tok:12.1f} {total_tok:13.1f}")
+                      f"{sr[0]:9.1f} ± {sr[1]:<4.1f} "
+                      f"{step[0]:8.2f} ± {step[1]:<4.2f} "
+                      f"{plan_tok[0]:9.1f} ± {plan_tok[1]:<4.1f} "
+                      f"{total_tok[0]:9.1f} ± {total_tok[1]:<5.1f}")
 
         row = summarise(triple_s.get(abbr, []), gt)
         if row:
-            missing = "" if row["step_ratio_n"] else "   (no GT steps)"
             print(f"{abbr:<6} {'Triple-S':<12} {'—':<9} "
-                  f"{row['plan_sr']:9.1f} ± {row['ci']:<3.1f} "
-                  f"{row['step_ratio']:11.2f} {row['plan_tok']:12.1f} {row['total_tok']:13.1f}"
-                  f"{missing}")
-            print(f"{'':<6} {'':<12} {'':<9} {'':>4}({row['valid']}/{row['n']})"
-                  f"{'':>6} step ratio over {row['step_ratio_n']} valid plans")
+                  f"{row['plan_sr']:9.1f} ± {row['ci']:<4.1f} "
+                  f"{row['step_ratio']:8.2f} ± {row['step_ratio_ci']:<4.2f} "
+                  f"{row['plan_tok']:9.1f} ± {row['plan_tok_ci']:<4.1f} "
+                  f"{row['total_tok']:9.1f} ± {row['total_tok_ci']:<5.1f}")
+            print(f"{'':<6} {'':<12} {'':<9} {'':>4}({row['valid']}/{row['n']}), "
+                  f"step ratio over {row['step_ratio_n']} valid plans")
         print()
 
     return 0

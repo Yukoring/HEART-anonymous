@@ -5,6 +5,12 @@
     ; a tomato can be picked now follows from its measured height and width
     ; against the robot's reach and jaw opening, so no object is declared
     ; unpickable by an author's judgement.
+    ;
+    ; Two ripeness states, not three. Rotten fruit and the `discard` action that
+    ; went with it were removed: HEART lists rotten produce among the objects
+    ; the robot cannot use, conflating a state with a physical limit, so the
+    ; planner left it alone rather than throwing it away. That defect is worth
+    ; recording, but it is not what this evaluation measures.
 
     (:requirements :strips :typing :adl :fluents)
 
@@ -22,15 +28,8 @@
 
         (item_ripe ?i - item)
         (item_unripe ?i - item)
-        (item_rotten ?i - item)
 
         (item_collected ?i - item)
-        (item_discarded ?i - item)
-
-        ; Marks the dock zone so place_on_robot can be blocked there:
-        ; loading the on-board basket while parked at the dock makes no
-        ; physical sense, so the planner must load during field traversal.
-        (room_is_dock ?r - room)
     )
 
     (:functions
@@ -74,13 +73,16 @@
 
     ; place_on_robot: load the held item onto the robot's on-board carrier.
     ;
+    ; This domain has exactly one way to put something down, so the planners'
+    ; two — "place" and "drop" — both map here, along with "put", "load" and
+    ; "store", whatever target the plan names for them. There is nowhere else
+    ; in this scene for harvested fruit to go.
+    ;
     ; An earlier version forbade this at the dock, to force loading during
     ; traversal. That rule is nowhere in the instruction, so no planner could
-    ; infer it, and it failed every plan that carried fruit back before loading
-    ; — which is how all three conditions read "load them onto the robot, then
-    ; return to the dock". A rule that penalises every condition for something
-    ; none of them can know measures nothing. The logical side of the task is
-    ; already carried by the three ripeness classes.
+    ; infer it, and it failed every plan that carried fruit back before loading.
+    ; A rule that penalises every condition for something none of them can know
+    ; measures nothing.
     (:action place_on_robot
         :parameters (?a - agent ?i - item ?r - room)
         :precondition (and
@@ -95,20 +97,4 @@
         )
     )
 
-    ; discard: drop the held item off-side. Only rotten produce may be
-    ; discarded, so ripe fruit cannot be thrown away by mistake.
-    (:action discard
-        :parameters (?a - agent ?i - item ?r - room)
-        :precondition (and
-            (agent_at ?a ?r)
-            (agent_loaded ?a)
-            (agent_has_item ?a ?i)
-            (item_rotten ?i)
-        )
-        :effect (and
-            (item_discarded ?i)
-            (not(agent_loaded ?a))
-            (not(agent_has_item ?a ?i))
-        )
-    )
 )

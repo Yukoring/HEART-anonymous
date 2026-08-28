@@ -62,9 +62,13 @@ def load_scene(seed: int) -> Dict:
 
 def env_data_for(seed: int) -> Dict[str, Any]:
     specs = parse_urdf_to_specs(str(PROJECT_ROOT / "data" / "robots" / "summit_ur5e.urdf"))
+    # Starts at the first stem, matching the PDDL problem's initial state.
+    scene = load_scene(seed)
+    rooms = list(scene.values())[0]["rooms"]
+    start = rooms[sorted(r for r in rooms if r.startswith("stem"))[0]]["location"]
     return {
-        "scene_graph": load_scene(seed),
-        "robots": {"robot": {"urdf": specs, "position": [0.0, 0.0, 0.0],
+        "scene_graph": scene,
+        "robots": {"robot": {"urdf": specs, "position": list(start),
                              "location": [], "state": [], "capability": []}},
     }
 

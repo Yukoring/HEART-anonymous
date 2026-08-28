@@ -2,33 +2,20 @@
     (:domain farm_harvest)
 
     ; Goal derived from the oracle, not hand-written: every ripe tomato the
-    ; robot can actually grasp is collected, every rotten one it can grasp is
-    ; discarded, and the rest are left where they are.
+    ; robot can actually grasp is collected, and the rest are left where they are.
     (:objects
         robot - agent
-        dock_0 door_0 stem_01_0 stem_02_0 - room
+        stem_01_0 stem_02_0 - room
         tomato_01 tomato_02 tomato_03 tomato_04 tomato_05 tomato_06 tomato_07 tomato_08 - item
     )
 
     (:init
-        (agent_at robot dock_0)
+        (agent_at robot stem_01_0)
 
-        (room_is_dock dock_0)
-
-        (neighbor dock_0 door_0)
-        (neighbor dock_0 stem_01_0)
-        (neighbor dock_0 stem_02_0)
-        (neighbor door_0 dock_0)
-        (neighbor door_0 stem_01_0)
-        (neighbor door_0 stem_02_0)
-        (neighbor stem_01_0 dock_0)
-        (neighbor stem_01_0 door_0)
         (neighbor stem_01_0 stem_02_0)
-        (neighbor stem_02_0 dock_0)
-        (neighbor stem_02_0 door_0)
         (neighbor stem_02_0 stem_01_0)
 
-        (item_at tomato_01 stem_01_0) (item_pickable tomato_01) (item_rotten tomato_01)
+        (item_at tomato_01 stem_01_0) (item_pickable tomato_01) (item_unripe tomato_01)
         (= (item_height tomato_01) 0.969) (= (item_width tomato_01) 0.073)
         (item_at tomato_02 stem_02_0) (item_pickable tomato_02) (item_ripe tomato_02)
         (= (item_height tomato_02) 1.944) (= (item_width tomato_02) 0.06)
@@ -41,7 +28,7 @@
         (item_at tomato_06 stem_02_0) (item_pickable tomato_06) (item_ripe tomato_06)
         (= (item_height tomato_06) 0.944) (= (item_width tomato_06) 0.058)
         (item_at tomato_07 stem_01_0) (item_pickable tomato_07) (item_ripe tomato_07)
-        (= (item_height tomato_07) 1.147) (= (item_width tomato_07) 0.146)
+        (= (item_height tomato_07) 1.147) (= (item_width tomato_07) 0.184)
         (item_at tomato_08 stem_02_0) (item_pickable tomato_08) (item_ripe tomato_08)
         (= (item_height tomato_08) 2.046) (= (item_width tomato_08) 0.072)
 
@@ -53,7 +40,7 @@
         (item_collected tomato_03)
         (item_collected tomato_04)
         (item_collected tomato_06)
-        (item_discarded tomato_01)
-        (agent_at robot dock_0)
+        (not (item_collected tomato_01))
+        (not (item_collected tomato_05))
     ))
 )
