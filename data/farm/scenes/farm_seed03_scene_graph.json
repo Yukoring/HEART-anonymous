@@ -49,7 +49,8 @@
             ],
             "weight": 0.102,
             "affordance": [
-              "pick"
+              "pick",
+              "place_on_robot"
             ],
             "state": [
               "ripe"
@@ -68,7 +69,8 @@
             ],
             "weight": 0.225,
             "affordance": [
-              "pick"
+              "pick",
+              "place_on_robot"
             ],
             "state": [
               "ripe"
@@ -87,7 +89,8 @@
             ],
             "weight": 0.178,
             "affordance": [
-              "pick"
+              "pick",
+              "place_on_robot"
             ],
             "state": [
               "unripe"
@@ -136,7 +139,8 @@
             ],
             "weight": 0.135,
             "affordance": [
-              "pick"
+              "pick",
+              "place_on_robot"
             ],
             "state": [
               "ripe"
@@ -155,7 +159,8 @@
             ],
             "weight": 0.123,
             "affordance": [
-              "pick"
+              "pick",
+              "place_on_robot"
             ],
             "state": [
               "unripe"
@@ -174,7 +179,8 @@
             ],
             "weight": 0.11,
             "affordance": [
-              "pick"
+              "pick",
+              "place_on_robot"
             ],
             "state": [
               "ripe"
