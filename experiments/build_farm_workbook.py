@@ -5,13 +5,14 @@ Five sheets:
 
   Overview        what to run and in what order
   A_Grasp         the 60 independent grasp trials, one row each, ready to fill in
-  B_Plan          the 15 plans to execute, with the failure predicted offline
-  B_Plan_Actions  every action of those 15 plans, so the operator can follow along
+  B_Plan          the 45 plans, with the failure predicted offline
+  B_Plan_Actions  every action of every plan, raw and as PDDL, to follow along
   Scenes          the placement tables, so the sheet is self-contained
 
-The plans come from iteration 1 of the three-condition sweep. Fixing the
-iteration in advance keeps the choice of which plan to execute out of the
-operator's hands.
+All three iterations of each scene-condition pair are listed. The protocol
+executes iteration 1 — fixing that in advance keeps the choice of plan out of
+the operator's hands — but the other two are here to read against it, since the
+same pair can succeed on one iteration and fail on another.
 
     python -m experiments.build_farm_workbook
 """
@@ -32,10 +33,10 @@ from experiments.generate_farm_scenes import INSTRUCTION
 from heart.evaluation.feasibility_oracle import get_capability, graspable
 
 PROJECT_ROOT = Path(__file__).parent.parent
-RUN_DIR = PROJECT_ROOT / "results" / "farm_planners_20260828_134329"
+RUN_DIR = PROJECT_ROOT / "results" / "farm_planners_20260831_114854"
 OUT = PROJECT_ROOT / "results" / "farm_experiment_sheet.xlsx"
 ROBOT = "summit_ur5e"
-ITERATION = "1"
+EXECUTE_ITERATION = "1"   # the one the protocol runs
 
 CONDITIONS = [("heart_llm_cot", "LLM-CoT + HEART"),
               ("baseline_llm_cot", "LLM-CoT alone"),
@@ -93,13 +94,17 @@ def load_scenes() -> Dict[int, List[dict]]:
 def load_runs() -> List[dict]:
     runs = []
     for row in csv.DictReader(open(RUN_DIR / "picks.csv")):
-        if row["iteration"] != ITERATION or row["error"]:
+        if row["error"]:
             continue
-        seed = int(row["seed"])
-        path = RUN_DIR / "plans" / f"farm_seed{seed:02d}_iter{ITERATION}_{row['condition']}.plan"
-        plan = [l.strip() for l in path.read_text().splitlines() if l.strip()] if path.is_file() else []
+        seed, it = int(row["seed"]), row["iteration"]
+        stem = RUN_DIR / "plans" / f"farm_seed{seed:02d}_iter{it}_{row['condition']}"
+        raw = stem.with_name(stem.name + ".plan")
+        pddl = stem.with_name(stem.name + "_pddl.plan")
+        read = lambda p: [l.strip() for l in p.read_text().splitlines() if l.strip()] if p.is_file() else []
+        plan = read(raw)
         runs.append({
-            "seed": seed, "condition": row["condition"], "plan": plan,
+            "seed": seed, "iteration": it, "condition": row["condition"],
+            "plan": plan, "pddl": read(pddl),
             "picks": row["picks"].split("|") if row["picks"] else [],
             "infeasible": row["infeasible"].split("|") if row["infeasible"] else [],
             "valid": row["valid"] == "True",
@@ -137,7 +142,8 @@ def main() -> int:
     scenes = load_scenes()
     runs = load_runs()
     cap = get_capability(ROBOT)
-    by_key = {(r["seed"], r["condition"]): r for r in runs}
+    ordered = sorted(runs, key=lambda r: (r["seed"],
+                     [c for c, _ in CONDITIONS].index(r["condition"]), r["iteration"]))
     labels = dict(CONDITIONS)
 
     wb = Workbook()
@@ -156,7 +162,9 @@ def main() -> int:
         ("측정 (A)", "독립 파지 60회 — 시트 A_Grasp. 오라클 예측이 실제와 맞는지 보는 1차 측정이며, "
                      "플래너와 무관하게 토마토 하나씩 독립적으로 시도합니다."),
         ("측정 (B)", "플랜 실행 15회 — 시트 B_Plan. 씬 5개 × 조건 3개 × 1회. "
-                     "어느 회차를 쓸지는 iteration 1로 고정해 선택 편향을 없앴습니다."),
+                     "실행 대상은 iteration 1로 고정해 선택 편향을 없앴습니다. "
+                     "나머지 두 회차도 '참고'로 함께 실었습니다 — 같은 조건이 회차마다 "
+                     "성패가 갈리므로 실기 결과를 읽을 때 대조군이 됩니다."),
         ("", ""),
         ("진행 순서", "씬 1을 세팅 → A_Grasp에서 그 씬의 토마토를 전부 시도 → "
                       "B_Plan에서 그 씬의 세 조건을 실행 → 씬 2로 이동"),
@@ -214,69 +222,76 @@ def main() -> int:
 
     # ------------------------------------------------------------------ B_Plan
     ws = wb.create_sheet("B_Plan")
-    head = ["씬", "조건", "액션 수", "집으려는 대상", "오프라인 예상", "예상 실패 원인",
-            "상세", "실기 완주 (O/X)", "첫 실패 액션", "실패 원인", "비고"]
+    head = ["씬", "조건", "회차", "실행 대상", "액션 수", "집으려는 대상", "오프라인 예상",
+            "예상 실패 원인", "상세", "실기 완주 (O/X)", "첫 실패 액션", "실패 원인", "비고"]
     ws.append(head)
     style_header(ws, 1, len(head))
-    widths(ws, {"A": 6, "B": 18, "C": 9, "D": 34, "E": 13, "F": 16, "G": 40,
-                "H": 15, "I": 20, "J": 16, "K": 22})
+    widths(ws, {"A": 6, "B": 18, "C": 7, "D": 11, "E": 9, "F": 34, "G": 13,
+                "H": 16, "I": 40, "J": 15, "K": 20, "L": 16, "M": 22})
     row = 2
-    for seed in sorted(scenes):
-        for cond, label in CONDITIONS:
-            run = by_key.get((seed, cond))
-            if run is None:
-                continue
-            outcome, cause, detail = diagnose(run, scenes[seed])
-            ws.append([seed, label, len(run["plan"]), ", ".join(run["picks"]) or "(없음)",
-                       outcome, cause, detail, "", "", "", ""])
+    for run in ordered:
+        label = dict(CONDITIONS)[run["condition"]]
+        outcome, cause, detail = diagnose(run, scenes[run["seed"]])
+        runs_it = run["iteration"] == EXECUTE_ITERATION
+        ws.append([run["seed"], label, int(run["iteration"]),
+                   "실행" if runs_it else "참고", len(run["plan"]),
+                   ", ".join(run["picks"]) or "(없음)", outcome, cause, detail,
+                   "", "", "", ""])
+        for c in range(1, len(head) + 1):
+            cell = ws.cell(row=row, column=c)
+            cell.font = Font(name=FONT, size=10, bold=(c == 4 and runs_it))
+            cell.border = BOX
+            cell.alignment = Alignment(vertical="center", wrap_text=(c in (6, 9)))
+            if run["seed"] % 2 == 0:
+                cell.fill = BAND
+        if outcome != "완주":
+            ws.cell(row=row, column=7).fill = BAD
+        if runs_it:
+            for c in (10, 11, 12, 13):
+                ws.cell(row=row, column=c).fill = FILLIN
+        row += 1
+
+    # ---------------------------------------------------------- B_Plan_Actions
+    ws = wb.create_sheet("B_Plan_Actions")
+    head = ["씬", "조건", "회차", "#", "액션 (플래너 출력)", "PDDL 변환", "대상 판정",
+            "실행 (O/X)", "실패 원인"]
+    ws.append(head)
+    style_header(ws, 1, len(head))
+    widths(ws, {"A": 6, "B": 18, "C": 7, "D": 5, "E": 42, "F": 46, "G": 16,
+                "H": 13, "I": 18})
+    row = 2
+    pick_re = re.compile(r"\b(?:pick|pick_from)\s*\(\s*[^,)]+\s*,\s*([^,)]+)")
+    for run in ordered:
+        label = dict(CONDITIONS)[run["condition"]]
+        spec = {t["name"]: t for t in scenes[run["seed"]]}
+        runs_it = run["iteration"] == EXECUTE_ITERATION
+        actions = run["plan"] or ["(플랜 없음)"]
+        # The converter is told to emit one PDDL action per input action, so the
+        # two lists line up; pad rather than assume it when a run fell short.
+        pddl = run["pddl"] + [""] * (len(actions) - len(run["pddl"]))
+        for i, (action, converted) in enumerate(zip(actions, pddl), start=1):
+            m = pick_re.search(action)
+            verdict = ""
+            if m:
+                t = spec.get(m.group(1).strip().strip(")'\""))
+                if t:
+                    verdict = "가능" if t["graspable"] else (
+                        "불가능 (도달)" if t["violates"] == "too_high" else "불가능 (크기)")
+            ws.append([run["seed"], label, int(run["iteration"]), i, action,
+                       converted, verdict, "", ""])
             for c in range(1, len(head) + 1):
                 cell = ws.cell(row=row, column=c)
                 cell.font = Font(name=FONT, size=10)
                 cell.border = BOX
-                cell.alignment = Alignment(vertical="center", wrap_text=(c in (4, 7)))
-                if seed % 2 == 0:
+                if run["seed"] % 2 == 0:
                     cell.fill = BAND
-            if outcome != "완주":
-                ws.cell(row=row, column=5).fill = BAD
-            for c in (8, 9, 10, 11):
-                ws.cell(row=row, column=c).fill = FILLIN
-            row += 1
-
-    # ---------------------------------------------------------- B_Plan_Actions
-    ws = wb.create_sheet("B_Plan_Actions")
-    head = ["씬", "조건", "#", "액션", "대상 판정", "실행 (O/X)", "실패 원인"]
-    ws.append(head)
-    style_header(ws, 1, len(head))
-    widths(ws, {"A": 6, "B": 18, "C": 5, "D": 44, "E": 20, "F": 13, "G": 18})
-    row = 2
-    pick_re = re.compile(r"\b(?:pick|pick_from)\s*\(\s*[^,)]+\s*,\s*([^,)]+)")
-    for seed in sorted(scenes):
-        spec = {t["name"]: t for t in scenes[seed]}
-        for cond, label in CONDITIONS:
-            run = by_key.get((seed, cond))
-            if run is None:
-                continue
-            for i, action in enumerate(run["plan"] or ["(플랜 없음)"], start=1):
-                m = pick_re.search(action)
-                verdict = ""
-                if m:
-                    t = spec.get(m.group(1).strip().strip(")'\""))
-                    if t:
-                        verdict = "가능" if t["graspable"] else (
-                            "불가능 (도달)" if t["violates"] == "too_high" else "불가능 (크기)")
-                ws.append([seed, label, i, action, verdict, "", ""])
-                for c in range(1, len(head) + 1):
-                    cell = ws.cell(row=row, column=c)
-                    cell.font = Font(name=FONT, size=10)
-                    cell.border = BOX
-                    if seed % 2 == 0:
-                        cell.fill = BAND
-                if verdict.startswith("불가능"):
-                    ws.cell(row=row, column=5).fill = BAD
-                    ws.cell(row=row, column=5).font = Font(name=FONT, size=10, bold=True)
-                for c in (6, 7):
+            if verdict.startswith("불가능"):
+                ws.cell(row=row, column=7).fill = BAD
+                ws.cell(row=row, column=7).font = Font(name=FONT, size=10, bold=True)
+            if runs_it:
+                for c in (8, 9):
                     ws.cell(row=row, column=c).fill = FILLIN
-                row += 1
+            row += 1
 
     # ------------------------------------------------------------------ Scenes
     ws = wb.create_sheet("Scenes")

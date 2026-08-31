@@ -178,7 +178,11 @@ def scene_graph(seed: int, tomatoes: List[Tomato], stems: List[str]) -> Dict:
             "location": [round(0.10 + 0.05 * len(rooms[t.stem]["items"]), 3), y, t.height],
             "size": [t.width, t.width, round(t.width * 0.95, 3)],
             "weight": t.weight,
-            "affordance": ["pick"],
+            # Both the action that takes it and the one that puts it down, the
+            # way the household scenes list them on a pickable item. The farm
+            # domain's only destination is the robot's own carrier, so that is
+            # what the second one names.
+            "affordance": ["pick", "place_on_robot"],
             "state": [t.ripeness],
         }
     return {f"Farm_Seed_{seed:02d}": {
