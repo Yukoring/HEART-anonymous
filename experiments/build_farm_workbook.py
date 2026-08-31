@@ -115,6 +115,20 @@ def load_runs() -> List[dict]:
     return runs
 
 
+def fail_step(run: dict) -> int:
+    """
+    1-based index of the action VAL rejected, or 0 if the plan ran to the end.
+
+    VAL reports "at time N" for a sequential plan, and the converter emits one
+    PDDL action per input action, so N indexes both plans alike. A goal that is
+    simply unmet carries no time — nothing failed, the plan just stopped short.
+    """
+    if run["valid"]:
+        return 0
+    match = re.search(r"at time (\d+)", run["info"])
+    return int(match.group(1)) if match else 0
+
+
 def diagnose(run: dict, tomatoes: List[dict]) -> tuple:
     """(예상 결과, 원인 분류, 상세) — offline VAL verdict, read for an operator."""
     if run["valid"]:
@@ -173,6 +187,12 @@ def main() -> int:
         ("노란 칸", "실기에서 채워 넣는 칸입니다. 나머지는 오프라인에서 확정된 값이므로 수정하지 마세요."),
         ("실패 원인", "도달 불가 / 파지 실패 / 충돌 / 주행 실패 중 하나로 적습니다. "
                       "앞의 셋이 Reviewer 17이 지적한 kinematic · dynamics · collision에 각각 대응합니다."),
+        ("예상 실패 액션", "오프라인 검증(VAL)이 거부한 액션의 번호이며, B_Plan_Actions의 '#' 열과 "
+                           "같은 번호입니다. 그 뒤의 액션은 실행에 도달하지 못하므로 '미도달'로 표시했습니다. "
+                           "한 액션이 물리 제약과 다른 조건을 동시에 어길 때는 물리 쪽을 원인으로 적습니다 "
+                           "— 실기에서 실제로 관측되는 것이 그쪽이기 때문입니다."),
+        ("목표 미달성", "액션은 전부 성립하는데 목표만 못 채운 경우로, 지목할 액션이 없어 '—'로 둡니다. "
+                        "이 플랜은 끝까지 실행되며, 무엇을 빠뜨렸는지가 기록 대상입니다."),
         ("", ""),
         ("(A) 중단 규칙", "오라클이 '가능'이라 한 토마토가 2회 중 1회라도 실패하면 3회차를 추가합니다."),
         ("(B) 중단 규칙", "goto가 실패하면 위치를 복구할 수 없으므로 그 자리에서 중단하고 첫 실패 지점만 기록합니다. "
@@ -224,39 +244,47 @@ def main() -> int:
     # ------------------------------------------------------------------ B_Plan
     ws = wb.create_sheet("B_Plan")
     head = ["씬", "조건", "회차", "액션 수", "집으려는 대상", "오프라인 예상",
-            "예상 실패 원인", "상세", "실기 완주 (O/X)", "첫 실패 액션", "실패 원인", "비고"]
+            "예상 실패 원인", "예상 실패 액션 #", "상세", "실기 완주 (O/X)",
+            "첫 실패 액션", "실패 원인", "비고"]
     ws.append(head)
     style_header(ws, 1, len(head))
     widths(ws, {"A": 6, "B": 18, "C": 7, "D": 9, "E": 34, "F": 13,
-                "G": 16, "H": 40, "I": 15, "J": 20, "K": 16, "L": 22})
+                "G": 16, "H": 15, "I": 40, "J": 15, "K": 20, "L": 16, "M": 22})
     row = 2
     for run in ordered:
         label = dict(CONDITIONS)[run["condition"]]
         outcome, cause, detail = diagnose(run, scenes[run["seed"]])
+        stop = fail_step(run)
+        # No step number when the plan ran to completion and only the goal was
+        # unmet — there is no action to point at.
         ws.append([run["seed"], label, int(run["iteration"]), len(run["plan"]),
-                   ", ".join(run["picks"]) or "(없음)", outcome, cause, detail,
+                   ", ".join(run["picks"]) or "(없음)", outcome, cause,
+                   f"#{stop} / {len(run['plan'])}" if stop else "—", detail,
                    "", "", "", ""])
         for c in range(1, len(head) + 1):
             cell = ws.cell(row=row, column=c)
             cell.font = Font(name=FONT, size=10)
             cell.border = BOX
-            cell.alignment = Alignment(vertical="center", wrap_text=(c in (5, 8)))
+            cell.alignment = Alignment(vertical="center", wrap_text=(c in (5, 9)))
             if run["seed"] % 2 == 0:
                 cell.fill = BAND
         if outcome != "완주":
             ws.cell(row=row, column=6).fill = BAD
-        for c in (9, 10, 11, 12):
+            if stop:
+                ws.cell(row=row, column=8).font = Font(name=FONT, size=10, bold=True,
+                                                       color="9C0006")
+        for c in (10, 11, 12, 13):
             ws.cell(row=row, column=c).fill = FILLIN
         row += 1
 
     # ---------------------------------------------------------- B_Plan_Actions
     ws = wb.create_sheet("B_Plan_Actions")
     head = ["씬", "조건", "회차", "#", "액션 (플래너 출력)", "PDDL 변환", "대상 판정",
-            "실행 (O/X)", "실패 원인"]
+            "오프라인 예상", "실행 (O/X)", "실패 원인"]
     ws.append(head)
     style_header(ws, 1, len(head))
     widths(ws, {"A": 6, "B": 18, "C": 7, "D": 5, "E": 42, "F": 46, "G": 16,
-                "H": 13, "I": 18})
+                "H": 16, "I": 13, "J": 18})
     row = 2
     pick_re = re.compile(r"\b(?:pick|pick_from)\s*\(\s*[^,)]+\s*,\s*([^,)]+)")
     for run in ordered:
@@ -266,6 +294,7 @@ def main() -> int:
         # The converter is told to emit one PDDL action per input action, so the
         # two lists line up; pad rather than assume it when a run fell short.
         pddl = run["pddl"] + [""] * (len(actions) - len(run["pddl"]))
+        stop = fail_step(run)
         for i, (action, converted) in enumerate(zip(actions, pddl), start=1):
             m = pick_re.search(action)
             verdict = ""
@@ -274,8 +303,13 @@ def main() -> int:
                 if t:
                     verdict = "가능" if t["graspable"] else (
                         "불가능 (도달)" if t["violates"] == "too_high" else "불가능 (크기)")
+            # Everything after the rejected action is unreachable in execution,
+            # so it is marked rather than left blank — a blank there would read
+            # as "expected to succeed".
+            expect = "통과" if not stop or i < stop else (
+                f"실패 지점 (#{i})" if i == stop else "미도달")
             ws.append([run["seed"], label, int(run["iteration"]), i, action,
-                       converted, verdict, "", ""])
+                       converted, verdict, expect, "", ""])
             for c in range(1, len(head) + 1):
                 cell = ws.cell(row=row, column=c)
                 cell.font = Font(name=FONT, size=10)
@@ -285,7 +319,13 @@ def main() -> int:
             if verdict.startswith("불가능"):
                 ws.cell(row=row, column=7).fill = BAD
                 ws.cell(row=row, column=7).font = Font(name=FONT, size=10, bold=True)
-            for c in (8, 9):
+            if i == stop:
+                cell = ws.cell(row=row, column=8)
+                cell.fill = BAD
+                cell.font = Font(name=FONT, size=10, bold=True, color="9C0006")
+            elif stop and i > stop:
+                ws.cell(row=row, column=8).font = Font(name=FONT, size=10, color="808080")
+            for c in (9, 10):
                 ws.cell(row=row, column=c).fill = FILLIN
             row += 1
 
