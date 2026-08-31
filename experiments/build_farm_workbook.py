@@ -5,14 +5,13 @@ Five sheets:
 
   Overview        what to run and in what order
   A_Grasp         the 60 independent grasp trials, one row each, ready to fill in
-  B_Plan          the 45 plans, with the failure predicted offline
+  B_Plan          all 45 plans, with the failure predicted offline
   B_Plan_Actions  every action of every plan, raw and as PDDL, to follow along
   Scenes          the placement tables, so the sheet is self-contained
 
-All three iterations of each scene-condition pair are listed. The protocol
-executes iteration 1 — fixing that in advance keeps the choice of plan out of
-the operator's hands — but the other two are here to read against it, since the
-same pair can succeed on one iteration and fail on another.
+All three iterations of each scene-condition pair are executed, so no plan has
+to be chosen over another and the same pair's run-to-run variation is measured
+rather than assumed.
 
     python -m experiments.build_farm_workbook
 """
@@ -36,7 +35,6 @@ PROJECT_ROOT = Path(__file__).parent.parent
 RUN_DIR = PROJECT_ROOT / "results" / "farm_planners_20260831_114854"
 OUT = PROJECT_ROOT / "results" / "farm_experiment_sheet.xlsx"
 ROBOT = "summit_ur5e"
-EXECUTE_ITERATION = "1"   # the one the protocol runs
 
 CONDITIONS = [("heart_llm_cot", "LLM-CoT + HEART"),
               ("baseline_llm_cot", "LLM-CoT alone"),
@@ -161,10 +159,9 @@ def main() -> int:
         ("", ""),
         ("측정 (A)", "독립 파지 60회 — 시트 A_Grasp. 오라클 예측이 실제와 맞는지 보는 1차 측정이며, "
                      "플래너와 무관하게 토마토 하나씩 독립적으로 시도합니다."),
-        ("측정 (B)", "플랜 실행 15회 — 시트 B_Plan. 씬 5개 × 조건 3개 × 1회. "
-                     "실행 대상은 iteration 1로 고정해 선택 편향을 없앴습니다. "
-                     "나머지 두 회차도 '참고'로 함께 실었습니다 — 같은 조건이 회차마다 "
-                     "성패가 갈리므로 실기 결과를 읽을 때 대조군이 됩니다."),
+        ("측정 (B)", "플랜 실행 45회 — 시트 B_Plan. 씬 5개 × 조건 3개 × 3회. "
+                     "세 회차를 모두 실행하므로 어느 플랜을 고를지 정할 필요가 없고, "
+                     "같은 조건의 회차 간 편차도 측정됩니다."),
         ("", ""),
         ("진행 순서", "씬 1을 세팅 → A_Grasp에서 그 씬의 토마토를 전부 시도 → "
                       "B_Plan에서 그 씬의 세 조건을 실행 → 씬 2로 이동"),
@@ -222,33 +219,30 @@ def main() -> int:
 
     # ------------------------------------------------------------------ B_Plan
     ws = wb.create_sheet("B_Plan")
-    head = ["씬", "조건", "회차", "실행 대상", "액션 수", "집으려는 대상", "오프라인 예상",
+    head = ["씬", "조건", "회차", "액션 수", "집으려는 대상", "오프라인 예상",
             "예상 실패 원인", "상세", "실기 완주 (O/X)", "첫 실패 액션", "실패 원인", "비고"]
     ws.append(head)
     style_header(ws, 1, len(head))
-    widths(ws, {"A": 6, "B": 18, "C": 7, "D": 11, "E": 9, "F": 34, "G": 13,
-                "H": 16, "I": 40, "J": 15, "K": 20, "L": 16, "M": 22})
+    widths(ws, {"A": 6, "B": 18, "C": 7, "D": 9, "E": 34, "F": 13,
+                "G": 16, "H": 40, "I": 15, "J": 20, "K": 16, "L": 22})
     row = 2
     for run in ordered:
         label = dict(CONDITIONS)[run["condition"]]
         outcome, cause, detail = diagnose(run, scenes[run["seed"]])
-        runs_it = run["iteration"] == EXECUTE_ITERATION
-        ws.append([run["seed"], label, int(run["iteration"]),
-                   "실행" if runs_it else "참고", len(run["plan"]),
+        ws.append([run["seed"], label, int(run["iteration"]), len(run["plan"]),
                    ", ".join(run["picks"]) or "(없음)", outcome, cause, detail,
                    "", "", "", ""])
         for c in range(1, len(head) + 1):
             cell = ws.cell(row=row, column=c)
-            cell.font = Font(name=FONT, size=10, bold=(c == 4 and runs_it))
+            cell.font = Font(name=FONT, size=10)
             cell.border = BOX
-            cell.alignment = Alignment(vertical="center", wrap_text=(c in (6, 9)))
+            cell.alignment = Alignment(vertical="center", wrap_text=(c in (5, 8)))
             if run["seed"] % 2 == 0:
                 cell.fill = BAND
         if outcome != "완주":
-            ws.cell(row=row, column=7).fill = BAD
-        if runs_it:
-            for c in (10, 11, 12, 13):
-                ws.cell(row=row, column=c).fill = FILLIN
+            ws.cell(row=row, column=6).fill = BAD
+        for c in (9, 10, 11, 12):
+            ws.cell(row=row, column=c).fill = FILLIN
         row += 1
 
     # ---------------------------------------------------------- B_Plan_Actions
@@ -264,7 +258,6 @@ def main() -> int:
     for run in ordered:
         label = dict(CONDITIONS)[run["condition"]]
         spec = {t["name"]: t for t in scenes[run["seed"]]}
-        runs_it = run["iteration"] == EXECUTE_ITERATION
         actions = run["plan"] or ["(플랜 없음)"]
         # The converter is told to emit one PDDL action per input action, so the
         # two lists line up; pad rather than assume it when a run fell short.
@@ -288,9 +281,8 @@ def main() -> int:
             if verdict.startswith("불가능"):
                 ws.cell(row=row, column=7).fill = BAD
                 ws.cell(row=row, column=7).font = Font(name=FONT, size=10, bold=True)
-            if runs_it:
-                for c in (8, 9):
-                    ws.cell(row=row, column=c).fill = FILLIN
+            for c in (8, 9):
+                ws.cell(row=row, column=c).fill = FILLIN
             row += 1
 
     # ------------------------------------------------------------------ Scenes
