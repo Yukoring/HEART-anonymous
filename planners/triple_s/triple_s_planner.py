@@ -61,12 +61,26 @@ CANONICAL_ACTIONS = {
     "check": (2, "check(<robot>, <item>): visually inspect an item in the current room"),
 }
 
+# The farm domain defines three actions and no more, so Triple-S is given those
+# three rather than the household ten. Handing it a vocabulary the domain cannot
+# express would make its plans unmappable for reasons that have nothing to do
+# with the method.
+FARM_ACTIONS = {
+    "navigate": (3, "navigate(<robot>, <from_stem>, <to_stem>): move between neighbouring stems"),
+    "pick": (2, "pick(<robot>, <tomato>): pick a tomato from the current stem; the gripper holds one at a time"),
+    "place_on_robot": (2, "place_on_robot(<robot>, <tomato>): load the held tomato onto the carrier; the only way to put one down"),
+}
+
+ACTION_SETS = {"": CANONICAL_ACTIONS, "farm": FARM_ACTIONS}
+
 
 class TripleSPlanner:
     """Simplification-Solution-Summary planning over a scene graph."""
 
     def __init__(self, model_name: str = "gpt-4o", temperature: float = 0.0,
-                 top_k: int = TOP_K, max_feedback_rounds: int = MAX_FEEDBACK_ROUNDS):
+                 top_k: int = TOP_K, max_feedback_rounds: int = MAX_FEEDBACK_ROUNDS,
+                 action_set: str = ""):
+        self.actions = ACTION_SETS[action_set]
         self.model_name = model_name
         self.temperature = temperature
         self.top_k = top_k
@@ -86,7 +100,8 @@ class TripleSPlanner:
     # ------------------------------------------------------------------ public
 
     def plan(self, instruction: str, env_data: Dict[str, Any],
-             heart_constraints: str = "", **kwargs) -> Dict[str, Any]:
+             heart_constraints: str = "", prompt_variant: str = "",
+             **kwargs) -> Dict[str, Any]:
         """
         Generate an action plan.
 
@@ -97,6 +112,8 @@ class TripleSPlanner:
         """
         start = time.time()
         self._tokens_this_run = 0
+        if prompt_variant:
+            self.actions = ACTION_SETS[prompt_variant]
 
         scene_graph = env_data.get("scene_graph", {})
         robots = env_data.get("robots", {})
@@ -271,8 +288,7 @@ class TripleSPlanner:
                 actions.append(line)
         return actions
 
-    @staticmethod
-    def _action_library(scene_graph: Dict) -> str:
+    def _action_library(self, scene_graph: Dict) -> str:
         """
         The canonical vocabulary, plus any domain verb the scene affords that it
         does not already cover (cleaning, pouring, and the like).
@@ -286,17 +302,18 @@ class TripleSPlanner:
                     affordances.update(item.get("affordance", []))
 
         lines = ["Available Robot Actions:"]
-        lines += [f"- {description}" for _, description in CANONICAL_ACTIONS.values()]
-        for extra in get_robot_actions_from_affordances(affordances):
-            match = re.search(r"([a-z_]+)\(", extra)
-            if match and match.group(1) not in CANONICAL_ACTIONS:
-                lines.append(extra if extra.startswith("- ") else f"- {extra}")
+        lines += [f"- {description}" for _, description in self.actions.values()]
+        # A domain-specific set is exhaustive; only the general one takes extras.
+        if self.actions is CANONICAL_ACTIONS:
+            for extra in get_robot_actions_from_affordances(affordances):
+                match = re.search(r"([a-z_]+)\(", extra)
+                if match and match.group(1) not in CANONICAL_ACTIONS:
+                    lines.append(extra if extra.startswith("- ") else f"- {extra}")
         return "\n".join(lines)
 
-    @staticmethod
-    def _signatures(action_library: str) -> Dict[str, int]:
+    def _signatures(self, action_library: str) -> Dict[str, int]:
         """Action name to argument count, read off the library descriptions."""
-        signatures = {name: arity for name, (arity, _) in CANONICAL_ACTIONS.items()}
+        signatures = {name: arity for name, (arity, _) in self.actions.items()}
         for line in action_library.splitlines():
             match = re.search(r"([a-z_]+)\(([^)]*)\)", line)
             if match and match.group(1) not in signatures:

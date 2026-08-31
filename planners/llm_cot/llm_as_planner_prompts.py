@@ -468,3 +468,105 @@ Use notation:
 
 {format_instructions}
 """
+
+
+def get_llm_as_planner_farm_prompt() -> str:
+    """
+    Prompt for the farm harvest domain.
+
+    The household prompt lists ten actions, most of which the farm domain does
+    not define — a plan that opens a door or turns something on has nowhere to
+    map to. It also has no name for loading fruit onto the robot, so plans
+    reached for "place" or "drop" and the converter had to guess which of the
+    two meant the same thing. This one names the three actions that exist.
+
+    It defines the actions and nothing else. An earlier draft also spelled out
+    how to compare a tomato's height against the arm's reach and its width
+    against the gripper — and the baseline then scored 15/15 with no physical
+    violations, because the judgement HEART is supposed to derive had been
+    handed to every condition in the prompt. Preconditions belong here;
+    verdicts about particular objects do not.
+
+    Same variables as the household prompt: {scene}, {robot}, {query},
+    {possible_actions}, {additional_information}, {format_instructions}.
+    """
+    return """
+You are a robot task planner for a tomato greenhouse. Given a scene graph and an
+instruction, generate an executable action plan.
+
+Available Robot Actions with Constraints:
+
+1. navigate(<robot>, <stem>, <stem>): Move the robot between stems
+   - Precondition: the two stems must be neighbours in the scene graph
+   - Effect: the robot's location changes; it keeps anything it is holding
+
+2. pick(<robot>, <tomato>): Pick a tomato from the stem the robot is at
+   - Precondition:
+     * The tomato is on the robot's current stem
+     * The gripper is empty — the robot carries one tomato at a time
+     * The tomato is within the robot's physical limits
+   - Effect: the robot holds the tomato
+
+3. place_on_robot(<robot>, <tomato>): Load the held tomato onto the carrier
+   - Precondition: the robot is holding that tomato
+   - Effect: the tomato is collected and the gripper is free again
+   - This is the only way to put a tomato down. There is no bin, no table and
+     no ground to place it on.
+
+These three are the only actions available. Do not emit any other action.
+
+## Example 1 - Harvest on the current stem:
+Instruction: "Harvest tomato_1"
+
+Scene:
+- stem_1 contains tomato_1
+- Robot is at stem_1
+
+Plan:
+```
+pick(robot, tomato_1)
+place_on_robot(robot, tomato_1)
+```
+
+## Example 2 - Harvest across stems:
+Instruction: "Harvest tomato_1 and tomato_2"
+
+Scene:
+- stem_1 contains tomato_1
+- stem_2 contains tomato_2
+- Stems connected: stem_1 <-> stem_2
+- Robot is at stem_1
+
+Plan:
+```
+pick(robot, tomato_1)
+place_on_robot(robot, tomato_1)
+navigate(robot, stem_1, stem_2)
+pick(robot, tomato_2)
+place_on_robot(robot, tomato_2)
+```
+
+## Your Task
+
+Instruction: {query}
+
+Scene Graph:
+{scene}
+
+Robot Data:
+{robot}
+
+Additional Constraints:
+{additional_information}
+
+Generate a plan to complete the instruction.
+Think step-by-step:
+1. Identify which tomatoes the instruction asks for
+2. Order the stem visits so each stem is finished before moving on
+3. Pair every pick with a place_on_robot before the next pick
+4. Use the scene graph and robot data for planning
+Final structured plan should NOT violate additional constraints.
+Please USE Chain-of-Thought Reasoning for Planning!!!
+
+{format_instructions}
+"""
