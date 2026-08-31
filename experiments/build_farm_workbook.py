@@ -32,7 +32,11 @@ from experiments.generate_farm_scenes import INSTRUCTION
 from heart.evaluation.feasibility_oracle import get_capability, graspable
 
 PROJECT_ROOT = Path(__file__).parent.parent
-RUN_DIR = PROJECT_ROOT / "results" / "farm_planners_20260831_114854"
+# Pinned to a run rather than "the newest one" — the sheet is printed and taken
+# to the robot, so the plans in it have to stay the plans it was built from.
+# This run is the one whose farm prompt states the action signatures only and
+# leaves every physical judgement to the planner.
+RUN_DIR = PROJECT_ROOT / "results" / "farm_planners_20260831_144651"
 OUT = PROJECT_ROOT / "results" / "farm_experiment_sheet.xlsx"
 ROBOT = "summit_ur5e"
 

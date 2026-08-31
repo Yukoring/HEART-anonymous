@@ -60,6 +60,7 @@ class LLMCoTPlanner:
         instruction: str,
         env_data: Dict[str, Any],
         heart_constraints: str = "",
+        prompt_variant: str = "",
         **kwargs,
     ) -> Dict[str, Any]:
         """
@@ -69,6 +70,9 @@ class LLMCoTPlanner:
             instruction: Task instruction
             env_data: Full environment data (scene_graph + robots)
             heart_constraints: HEART Q&A constraints text (empty = baseline)
+            prompt_variant: "farm" selects the harvest prompt, whose action list
+                matches that domain. Left empty, the household prompt is used and
+                the robot is told about actions the farm domain cannot express.
 
         Returns:
             {"plan": List[str], "tokens_used": int, "execution_time": float}
@@ -88,7 +92,12 @@ class LLMCoTPlanner:
         )
 
         # 3. Select prompt and output schema
-        if is_multi_robot:
+        if prompt_variant == "farm":
+            from planners.llm_cot.llm_as_planner_prompts import get_llm_as_planner_farm_prompt
+            human_prompt = get_llm_as_planner_farm_prompt()
+            output_schema = TaskPlan
+            format_instructions = self.parser_format
+        elif is_multi_robot:
             from planners.llm_cot.llm_as_planner_prompts import get_llm_as_planner_multi_robot_prompt
             human_prompt = get_llm_as_planner_multi_robot_prompt()
             output_schema = MultiRobotTaskPlan

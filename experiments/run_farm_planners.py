@@ -85,13 +85,18 @@ def run_condition(condition: str, seed: int, iteration: int) -> Dict[str, Any]:
     env_data = env_data_for(seed)
     task = FarmTask(id=f"farm_seed{seed:02d}", robots={"robot": ROBOT})
 
+    # Every condition gets the farm action set — three actions, matching the
+    # domain — rather than the household ten, so none of them is planning with
+    # verbs this domain cannot express.
     if condition == "baseline_llm_cot":
         from planners.llm_cot import LLMCoTPlanner
-        return LLMCoTPlanner().plan(instruction=INSTRUCTION, env_data=env_data)
+        return LLMCoTPlanner().plan(instruction=INSTRUCTION, env_data=env_data,
+                                    prompt_variant="farm")
 
     if condition == "baseline_triple_s":
         from planners.triple_s import TripleSPlanner
-        return TripleSPlanner().plan(instruction=INSTRUCTION, env_data=env_data)
+        return TripleSPlanner().plan(instruction=INSTRUCTION, env_data=env_data,
+                                     prompt_variant="farm")
 
     if condition == "heart_llm_cot":
         from experiments._common import reset_global_instances
@@ -104,7 +109,8 @@ def run_condition(condition: str, seed: int, iteration: int) -> Dict[str, Any]:
         state = initialize_state(
             instruction=INSTRUCTION, env_data=env_data,
             agents=config["agents"], allocator_type=config["allocator_type"],
-            planner_type="llm_cot", token_budget=20000, planner_config={},
+            planner_type="llm_cot", token_budget=20000,
+            planner_config={"prompt_variant": "farm"},
         )
         workflow = create_workflow(
             agents=config["agents"], allocator_type=config["allocator_type"],
