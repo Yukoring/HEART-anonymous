@@ -1,0 +1,59 @@
+Planning Result Log
+================================================================================
+
+[Meta]
+domain: tomato
+mode: offline
+planner: pomdp
+scenario: T36
+
+[Plan Summary]
+success: False
+end_reason: Expert에 의한 plan failure
+steps: 5
+cumulated_reward: 0.0
+total_questions: 0
+
+[Timing]
+search_time: total=0.0000s, avg=0.0000s
+execute_time: total=82.7031s, avg=16.5406s
+update_time: total=0.0000s, avg=0.0000s
+interaction_time: total=0.0000s, avg=0.0000s
+pruning_time: total=0.0000s, avg=0.0000s
+step_total_time: total=82.7191s, avg=16.5438s
+total_time: 82.7213s
+
+[Full Plan]
+STEP 1: pick(robot, tomato_05) (search=0.0000s, execute=31.2770s, update=0.0000s, interaction=0.0000s, pruning=0.0000s, step_total=31.2794s, tree_nodes=-, expanded_nodes=-, root_actions=-, max_tree_depth=-, belief_frontier=-, step_reward=0.0, cumulated_reward=0.0)
+STEP 2: place_on_robot(robot, tomato_05) (search=0.0000s, execute=10.3938s, update=0.0000s, interaction=0.0000s, pruning=0.0000s, step_total=10.3955s, tree_nodes=-, expanded_nodes=-, root_actions=-, max_tree_depth=-, belief_frontier=-, step_reward=0.0, cumulated_reward=0.0)
+STEP 3: pick(robot, tomato_07) (search=0.0000s, execute=26.2908s, update=0.0000s, interaction=0.0000s, pruning=0.0000s, step_total=26.2989s, tree_nodes=-, expanded_nodes=-, root_actions=-, max_tree_depth=-, belief_frontier=-, step_reward=0.0, cumulated_reward=0.0)
+STEP 4: navigate(robot, stem_01_0, stem_02_0) (search=0.0000s, execute=6.4607s, update=0.0000s, interaction=0.0000s, pruning=0.0000s, step_total=6.4639s, tree_nodes=-, expanded_nodes=-, root_actions=-, max_tree_depth=-, belief_frontier=-, step_reward=0.0, cumulated_reward=0.0)
+STEP 5: pick(robot, tomato_02) (search=0.0000s, execute=8.2808s, update=0.0000s, interaction=0.0000s, pruning=0.0000s, step_total=8.2814s, tree_nodes=-, expanded_nodes=-, root_actions=-, max_tree_depth=-, belief_frontier=-, step_reward=0.0, cumulated_reward=0.0)
+
+[Action Schema Summary]
+-
+
+[Questions]
+-
+
+[Final Knowledge]
+facts:
+  - handempty(robot)
+  - located(robot,stem_01_0)
+  - location(stem_01_0)
+  - location(stem_02_0)
+  - robot(robot)
+  - stem(stem_01_0)
+  - stem(stem_02_0)
+  - tomato(tomato_01)
+  - tomato(tomato_02)
+  - tomato(tomato_03)
+  - tomato(tomato_04)
+  - tomato(tomato_05)
+  - tomato(tomato_06)
+  - tomato(tomato_07)
+  - tomato(tomato_08)
+  - tomato_count(8)
+  - tomato_harvested(0)
+fluents:
+  -

@@ -1,0 +1,60 @@
+Planning Result Log
+================================================================================
+
+[Meta]
+domain: tomato
+mode: offline
+planner: pomdp
+scenario: T31
+
+[Plan Summary]
+success: False
+end_reason: Expert에 의한 plan failure
+steps: 6
+cumulated_reward: 0.0
+total_questions: 0
+
+[Timing]
+search_time: total=0.0000s, avg=0.0000s
+execute_time: total=79.5269s, avg=13.2545s
+update_time: total=0.0000s, avg=0.0000s
+interaction_time: total=0.0000s, avg=0.0000s
+pruning_time: total=0.0000s, avg=0.0000s
+step_total_time: total=79.5627s, avg=13.2605s
+total_time: 79.5644s
+
+[Full Plan]
+STEP 1: pick(robot, tomato_05) (search=0.0000s, execute=20.8452s, update=0.0000s, interaction=0.0000s, pruning=0.0000s, step_total=20.8523s, tree_nodes=-, expanded_nodes=-, root_actions=-, max_tree_depth=-, belief_frontier=-, step_reward=0.0, cumulated_reward=0.0)
+STEP 2: place_on_robot(robot, tomato_05) (search=0.0000s, execute=10.3500s, update=0.0000s, interaction=0.0000s, pruning=0.0000s, step_total=10.3572s, tree_nodes=-, expanded_nodes=-, root_actions=-, max_tree_depth=-, belief_frontier=-, step_reward=0.0, cumulated_reward=0.0)
+STEP 3: pick(robot, tomato_07) (search=0.0000s, execute=18.4159s, update=0.0000s, interaction=0.0000s, pruning=0.0000s, step_total=18.4236s, tree_nodes=-, expanded_nodes=-, root_actions=-, max_tree_depth=-, belief_frontier=-, step_reward=0.0, cumulated_reward=0.0)
+STEP 4: place_on_robot(robot, tomato_07) (search=0.0000s, execute=9.9488s, update=0.0000s, interaction=0.0000s, pruning=0.0000s, step_total=9.9583s, tree_nodes=-, expanded_nodes=-, root_actions=-, max_tree_depth=-, belief_frontier=-, step_reward=0.0, cumulated_reward=0.0)
+STEP 5: navigate(robot, stem_01_0, stem_02_0) (search=0.0000s, execute=5.2055s, update=0.0000s, interaction=0.0000s, pruning=0.0000s, step_total=5.2080s, tree_nodes=-, expanded_nodes=-, root_actions=-, max_tree_depth=-, belief_frontier=-, step_reward=0.0, cumulated_reward=0.0)
+STEP 6: pick(robot, tomato_02) (search=0.0000s, execute=14.7615s, update=0.0000s, interaction=0.0000s, pruning=0.0000s, step_total=14.7634s, tree_nodes=-, expanded_nodes=-, root_actions=-, max_tree_depth=-, belief_frontier=-, step_reward=0.0, cumulated_reward=0.0)
+
+[Action Schema Summary]
+-
+
+[Questions]
+-
+
+[Final Knowledge]
+facts:
+  - handempty(robot)
+  - located(robot,stem_01_0)
+  - location(stem_01_0)
+  - location(stem_02_0)
+  - robot(robot)
+  - stem(stem_01_0)
+  - stem(stem_02_0)
+  - tomato(tomato_01)
+  - tomato(tomato_02)
+  - tomato(tomato_03)
+  - tomato(tomato_04)
+  - tomato(tomato_05)
+  - tomato(tomato_06)
+  - tomato(tomato_07)
+  - tomato(tomato_08)
+  - tomato_count(8)
+  - tomato_harvested(0)
+fluents:
+  -
