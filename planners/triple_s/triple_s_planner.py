@@ -61,7 +61,7 @@ CANONICAL_ACTIONS = {
     "check": (2, "check(<robot>, <item>): visually inspect an item in the current room"),
 }
 
-# The farm domain defines three actions and no more, so Triple-S is given those
+# The harvesting domain defines three actions and no more, so Triple-S is given those
 # three rather than the household ten. Handing it a vocabulary the domain cannot
 # express would make its plans unmappable for reasons that have nothing to do
 # with the method.
@@ -71,7 +71,7 @@ FARM_ACTIONS = {
     "place_on_robot": (2, "place_on_robot(<robot>, <tomato>): load the held tomato onto the carrier; the only way to put one down"),
 }
 
-ACTION_SETS = {"": CANONICAL_ACTIONS, "farm": FARM_ACTIONS}
+ACTION_SETS = {"": CANONICAL_ACTIONS, "harvesting": FARM_ACTIONS}
 
 
 class TripleSPlanner:

@@ -1,5 +1,5 @@
 (define (problem farm_harvest_seed03)
-    (:domain farm_harvest)
+    (:domain harvesting)
 
     ; Goal derived from the oracle, not hand-written: every ripe tomato the
     ; robot can actually grasp is collected, and the rest are left where they are.

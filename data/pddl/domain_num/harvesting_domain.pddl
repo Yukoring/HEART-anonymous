@@ -1,5 +1,5 @@
 ;Header and description
-(define (domain farm_harvest)
+(define (domain harvesting)
 
     ; Numeric variant. The hand-authored `item_accessible` flag is gone: whether
     ; a tomato can be picked now follows from its measured height and width

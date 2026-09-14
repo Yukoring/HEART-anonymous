@@ -1,5 +1,5 @@
 """
-Plan generation on the farm scenes, before anything is set up physically.
+Plan generation on the harvesting scenes, before anything is set up physically.
 
 Runs LLM-CoT alone, LLM-CoT with HEART, and Triple-S over the generated seeds
 and records which tomato each plan reaches for. The point is to find out whether
@@ -11,9 +11,9 @@ Every pick in a plan is checked against the oracle, straight from the plan text.
 No PDDL conversion is involved, so a plan that would fail validation for some
 unrelated reason still reports the tomato it went for.
 
-    python -m experiments.run_farm_planners --iterations 3
+    python -m experiments.run_harvesting_planners --iterations 3
 
-Writes plans and a per-pick record under results/farm_planners_<timestamp>/.
+Writes plans and a per-pick record under results/harvesting_planners_<timestamp>/.
 """
 
 import argparse
@@ -31,31 +31,31 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from dotenv import load_dotenv
 
-from experiments.generate_farm_scenes import INSTRUCTION, ROBOT, SEEDS
+from experiments.generate_harvesting_scenes import INSTRUCTION, ROBOT, SEEDS
 from heart.evaluation.feasibility_oracle import get_capability, graspable
 from heart.utils.urdf_parser import parse_urdf_to_specs
 
 load_dotenv()
 
 PROJECT_ROOT = Path(__file__).parent.parent
-SCENE_DIR = PROJECT_ROOT / "data" / "farm" / "scenes"
+SCENE_DIR = PROJECT_ROOT / "data" / "harvesting" / "scenes"
 PICK = re.compile(r"\b(?:pick|pick_from|pick_up|grab|harvest)\s*\(\s*([^,)]+)\s*,\s*([^,)]+)")
 
 CONDITIONS = ["baseline_llm_cot", "heart_llm_cot", "baseline_triple_s"]
 
 
 @dataclass
-class FarmTask:
+class HarvestingTask:
     """Minimal stand-in for the household Task, enough for the planners."""
     id: str
-    domain: str = "farm_harvest"
+    domain: str = "harvesting"
     goal: str = INSTRUCTION
     position: Optional[Dict[str, List[float]]] = None
     robots: Optional[Dict[str, str]] = None
 
 
 def load_scene(seed: int) -> Dict:
-    path = SCENE_DIR / f"farm_seed{seed:02d}_scene_graph.json"
+    path = SCENE_DIR / f"harvesting_seed{seed:02d}_scene_graph.json"
     with open(path) as f:
         return json.load(f)
 
@@ -83,20 +83,20 @@ def tomatoes_of(seed: int) -> Dict[str, Dict]:
 
 def run_condition(condition: str, seed: int, iteration: int) -> Dict[str, Any]:
     env_data = env_data_for(seed)
-    task = FarmTask(id=f"farm_seed{seed:02d}", robots={"robot": ROBOT})
+    task = HarvestingTask(id=f"harvesting_seed{seed:02d}", robots={"robot": ROBOT})
 
-    # Every condition gets the farm action set — three actions, matching the
+    # Every condition gets the harvesting action set — three actions, matching the
     # domain — rather than the household ten, so none of them is planning with
     # verbs this domain cannot express.
     if condition == "baseline_llm_cot":
         from planners.llm_cot import LLMCoTPlanner
         return LLMCoTPlanner().plan(instruction=INSTRUCTION, env_data=env_data,
-                                    prompt_variant="farm")
+                                    prompt_variant="harvesting")
 
     if condition == "baseline_triple_s":
         from planners.triple_s import TripleSPlanner
         return TripleSPlanner().plan(instruction=INSTRUCTION, env_data=env_data,
-                                     prompt_variant="farm")
+                                     prompt_variant="harvesting")
 
     if condition == "heart_llm_cot":
         from experiments._common import reset_global_instances
@@ -110,7 +110,7 @@ def run_condition(condition: str, seed: int, iteration: int) -> Dict[str, Any]:
             instruction=INSTRUCTION, env_data=env_data,
             agents=config["agents"], allocator_type=config["allocator_type"],
             planner_type="llm_cot", token_budget=20000,
-            planner_config={"prompt_variant": "farm"},
+            planner_config={"prompt_variant": "harvesting"},
         )
         workflow = create_workflow(
             agents=config["agents"], allocator_type=config["allocator_type"],
@@ -127,7 +127,7 @@ def run_condition(condition: str, seed: int, iteration: int) -> Dict[str, Any]:
 def validate(plan: List[str], seed: int, out_dir: Path, condition: str,
              iteration: int) -> tuple:
     """
-    Validate against the numeric farm PDDL, the same way the household runs are
+    Validate against the numeric harvesting PDDL, the same way the household runs are
     validated: convert the plan to PDDL with an LLM, then hand it to VAL. The
     conversion cost is measurement overhead and is not counted against any
     planner.
@@ -137,15 +137,15 @@ def validate(plan: List[str], seed: int, out_dir: Path, condition: str,
     if not plan:
         return False, "no plan"
     paths = {
-        "domain": str(PROJECT_ROOT / "data/pddl/domain_num/farm_harvest_domain.pddl"),
-        "problem": str(PROJECT_ROOT / f"data/pddl/problem_num/farm_seed{seed:02d}_problem.pddl"),
+        "domain": str(PROJECT_ROOT / "data/pddl/domain_num/harvesting_domain.pddl"),
+        "problem": str(PROJECT_ROOT / f"data/pddl/problem_num/harvesting_seed{seed:02d}_problem.pddl"),
     }
-    result = validate_plan(plan_steps=plan, task_id=f"farm_seed{seed:02d}",
-                           scene_name="farm", planner_type="llm_cot",
+    result = validate_plan(plan_steps=plan, task_id=f"harvesting_seed{seed:02d}",
+                           scene_name="harvesting", planner_type="llm_cot",
                            pddl_paths=paths)
     if result.get("pddl_plan"):
         (out_dir / "plans" /
-         f"farm_seed{seed:02d}_iter{iteration}_{condition}_pddl.plan"
+         f"harvesting_seed{seed:02d}_iter{iteration}_{condition}_pddl.plan"
          ).write_text("\n".join(result["pddl_plan"]) + "\n")
     return result["valid"], result["info"][:120]
 
@@ -167,7 +167,7 @@ def main() -> int:
     parser.add_argument("--conditions", nargs="+", default=CONDITIONS)
     args = parser.parse_args()
 
-    out_dir = PROJECT_ROOT / "results" / f"farm_planners_{time.strftime('%Y%m%d_%H%M%S')}"
+    out_dir = PROJECT_ROOT / "results" / f"harvesting_planners_{time.strftime('%Y%m%d_%H%M%S')}"
     (out_dir / "plans").mkdir(parents=True, exist_ok=True)
     records: List[Dict[str, Any]] = []
 
@@ -186,7 +186,7 @@ def main() -> int:
                     continue
 
                 plan = result.get("plan", [])
-                (out_dir / "plans" / f"farm_seed{seed:02d}_iter{iteration}_{condition}.plan"
+                (out_dir / "plans" / f"harvesting_seed{seed:02d}_iter{iteration}_{condition}.plan"
                  ).write_text("\n".join(plan) + "\n")
 
                 targets = picks_in(plan)

@@ -34,7 +34,7 @@ def get_pddl_paths(task_id: str, scene_name: str,
     """
     Ground truth PDDL domain and problem file paths.
 
-    `pddl_paths` overrides the household task registry, which is how the farm
+    `pddl_paths` overrides the household task registry, which is how the harvesting
     scenes — generated rather than registered — are validated with the same code.
     """
     if pddl_paths:

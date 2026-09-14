@@ -70,9 +70,9 @@ class LLMCoTPlanner:
             instruction: Task instruction
             env_data: Full environment data (scene_graph + robots)
             heart_constraints: HEART Q&A constraints text (empty = baseline)
-            prompt_variant: "farm" selects the harvest prompt, whose action list
+            prompt_variant: "harvesting" selects the harvest prompt, whose action list
                 matches that domain. Left empty, the household prompt is used and
-                the robot is told about actions the farm domain cannot express.
+                the robot is told about actions the harvesting domain cannot express.
 
         Returns:
             {"plan": List[str], "tokens_used": int, "execution_time": float}
@@ -92,9 +92,9 @@ class LLMCoTPlanner:
         )
 
         # 3. Select prompt and output schema
-        if prompt_variant == "farm":
-            from planners.llm_cot.llm_as_planner_prompts import get_llm_as_planner_farm_prompt
-            human_prompt = get_llm_as_planner_farm_prompt()
+        if prompt_variant == "harvesting":
+            from planners.llm_cot.llm_as_planner_prompts import get_llm_as_planner_harvesting_prompt
+            human_prompt = get_llm_as_planner_harvesting_prompt()
             output_schema = TaskPlan
             format_instructions = self.parser_format
         elif is_multi_robot:

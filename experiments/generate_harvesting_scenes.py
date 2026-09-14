@@ -1,5 +1,5 @@
 """
-Farm harvest scenes for the real-robot evaluation.
+Harvesting harvest scenes for the real-robot evaluation.
 
 One instruction, five scene configurations. Holding the task fixed and varying
 only the physical arrangement means any difference between conditions is
@@ -30,7 +30,7 @@ Heights and widths are placed clear of the robot's limits — reachable at or
 below 1.30 m against a 1.71 m ceiling, out of reach at or above 1.85 m — so
 that no verdict depends on which reach model is used.
 
-    python -m experiments.generate_farm_scenes
+    python -m experiments.generate_harvesting_scenes
 
 Writes scene graphs, numeric PDDL problems, and a placement sheet per seed.
 """
@@ -45,9 +45,9 @@ from typing import Dict, List, Tuple
 from heart.evaluation.feasibility_oracle import get_capability, graspable
 
 PROJECT_ROOT = Path(__file__).parent.parent
-SCENE_OUT = PROJECT_ROOT / "data" / "farm" / "scenes"
+SCENE_OUT = PROJECT_ROOT / "data" / "harvesting" / "scenes"
 PROBLEM_OUT = PROJECT_ROOT / "data" / "pddl" / "problem_num"
-SHEET_OUT = PROJECT_ROOT / "data" / "farm" / "placement"
+SHEET_OUT = PROJECT_ROOT / "data" / "harvesting" / "placement"
 
 ROBOT = "summit_ur5e"
 INSTRUCTION = "Have the robot harvest only the ripe tomatoes."
@@ -179,14 +179,14 @@ def scene_graph(seed: int, tomatoes: List[Tomato], stems: List[str]) -> Dict:
             "size": [t.width, t.width, round(t.width * 0.95, 3)],
             "weight": t.weight,
             # Both the action that takes it and the one that puts it down, the
-            # way the household scenes list them on a pickable item. The farm
+            # way the household scenes list them on a pickable item. The harvesting
             # domain's only destination is the robot's own carrier, so that is
             # what the second one names.
             "affordance": ["pick", "place_on_robot"],
             "state": [t.ripeness],
         }
-    return {f"Farm_Seed_{seed:02d}": {
-        "metadata": {"function": "farm", "floors": 1, "floor_area": 12.0,
+    return {f"Harvesting_Seed_{seed:02d}": {
+        "metadata": {"function": "harvesting", "floors": 1, "floor_area": 12.0,
                      "gibson_split": None, "seed": seed},
         "rooms": rooms}}
 
@@ -234,8 +234,8 @@ def problem_pddl(seed: int, tomatoes: List[Tomato], stems: List[str],
     goal_lines = [f"        (item_collected {n})" for n in goals["collect"]]
     goal_lines += [f"        (not (item_collected {n}))" for n in goals["leave"]]
 
-    return f"""(define (problem farm_harvest_seed{seed:02d})
-    (:domain farm_harvest)
+    return f"""(define (problem harvesting_seed{seed:02d})
+    (:domain harvesting)
 
     ; Goal derived from the oracle, not hand-written: every ripe tomato the
     ; robot can actually grasp is collected, and the rest are left where they are.
@@ -262,7 +262,7 @@ def placement_sheet(seed: int, tomatoes: List[Tomato], stems: List[str]) -> str:
         f"| {t.name} | {t.stem} | {t.height:.2f} | {t.width:.3f} | {t.ripeness} | "
         f"{'—' if t.physical == 'ok' else t.physical} | {t.expected} |"
         for t in sorted(tomatoes, key=lambda x: (x.stem, x.name)))
-    return f"""# Farm seed {seed:02d} — placement sheet
+    return f"""# Harvesting seed {seed:02d} — placement sheet
 
 Instruction (identical for every seed and condition):
 
@@ -298,7 +298,7 @@ def main() -> int:
         scene = scene_graph(seed, tomatoes, stems)
 
         # Verify the intended labels against the oracle rather than trusting them.
-        items = {n: i for r in scene[f"Farm_Seed_{seed:02d}"]["rooms"].values()
+        items = {n: i for r in scene[f"Harvesting_Seed_{seed:02d}"]["rooms"].values()
                  for n, i in r.get("items", {}).items()}
         goals = {"collect": [], "leave": []}
         for t in tomatoes:
@@ -317,11 +317,11 @@ def main() -> int:
             if t.physical != "ok":
                 coverage[t.physical] += 1
 
-        (SCENE_OUT / f"farm_seed{seed:02d}_scene_graph.json").write_text(
+        (SCENE_OUT / f"harvesting_seed{seed:02d}_scene_graph.json").write_text(
             json.dumps(scene, indent=2) + "\n")
-        (PROBLEM_OUT / f"farm_seed{seed:02d}_problem.pddl").write_text(
+        (PROBLEM_OUT / f"harvesting_seed{seed:02d}_problem.pddl").write_text(
             problem_pddl(seed, tomatoes, stems, goals))
-        (SHEET_OUT / f"farm_seed{seed:02d}.md").write_text(
+        (SHEET_OUT / f"harvesting_seed{seed:02d}.md").write_text(
             placement_sheet(seed, tomatoes, stems))
 
         blocked = sum(1 for t in tomatoes if t.physical != "ok")

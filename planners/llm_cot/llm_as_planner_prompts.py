@@ -470,11 +470,11 @@ Use notation:
 """
 
 
-def get_llm_as_planner_farm_prompt() -> str:
+def get_llm_as_planner_harvesting_prompt() -> str:
     """
-    Prompt for the farm harvest domain.
+    Prompt for the harvesting harvest domain.
 
-    The household prompt lists ten actions, most of which the farm domain does
+    The household prompt lists ten actions, most of which the harvesting domain does
     not define — a plan that opens a door or turns something on has nowhere to
     map to. It also has no name for loading fruit onto the robot, so plans
     reached for "place" or "drop" and the converter had to guess which of the

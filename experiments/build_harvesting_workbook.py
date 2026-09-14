@@ -1,5 +1,5 @@
 """
-Build the recording workbook for the real-robot farm run.
+Build the recording workbook for the real-robot harvesting run.
 
 Five sheets:
 
@@ -13,7 +13,7 @@ All three iterations of each scene-condition pair are executed, so no plan has
 to be chosen over another and the same pair's run-to-run variation is measured
 rather than assumed.
 
-    python -m experiments.build_farm_workbook
+    python -m experiments.build_harvesting_workbook
 """
 
 import csv
@@ -28,16 +28,16 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
-from experiments.generate_farm_scenes import INSTRUCTION
+from experiments.generate_harvesting_scenes import INSTRUCTION
 from heart.evaluation.feasibility_oracle import get_capability, graspable
 
 PROJECT_ROOT = Path(__file__).parent.parent
 # Pinned to a run rather than "the newest one" — the sheet is printed and taken
 # to the robot, so the plans in it have to stay the plans it was built from.
-# This run is the one whose farm prompt states the action signatures only and
+# This run is the one whose harvesting prompt states the action signatures only and
 # leaves every physical judgement to the planner.
-RUN_DIR = PROJECT_ROOT / "results" / "farm_planners_20260831_144651"
-OUT = PROJECT_ROOT / "results" / "farm_experiment_sheet.xlsx"
+RUN_DIR = PROJECT_ROOT / "results" / "harvesting_planners_20260831_144651"
+OUT = PROJECT_ROOT / "results" / "harvesting_experiment_sheet.xlsx"
 ROBOT = "summit_ur5e"
 
 CONDITIONS = [("heart_llm_cot", "LLM-CoT + HEART"),
@@ -73,7 +73,7 @@ def widths(ws, spec: Dict[str, int]) -> None:
 def load_scenes() -> Dict[int, List[dict]]:
     scenes = {}
     for seed in range(1, 6):
-        path = PROJECT_ROOT / "data" / "farm" / "scenes" / f"farm_seed{seed:02d}_scene_graph.json"
+        path = PROJECT_ROOT / "data" / "harvesting" / "scenes" / f"harvesting_seed{seed:02d}_scene_graph.json"
         scene = list(json.load(open(path)).values())[0]
         rows = []
         for stem in sorted(r for r in scene["rooms"] if r.startswith("stem")):
@@ -99,7 +99,7 @@ def load_runs() -> List[dict]:
         if row["error"]:
             continue
         seed, it = int(row["seed"]), row["iteration"]
-        stem = RUN_DIR / "plans" / f"farm_seed{seed:02d}_iter{it}_{row['condition']}"
+        stem = RUN_DIR / "plans" / f"harvesting_seed{seed:02d}_iter{it}_{row['condition']}"
         raw = stem.with_name(stem.name + ".plan")
         pddl = stem.with_name(stem.name + "_pddl.plan")
         read = lambda p: [l.strip() for l in p.read_text().splitlines() if l.strip()] if p.is_file() else []
