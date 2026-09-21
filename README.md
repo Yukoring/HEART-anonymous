@@ -1,4 +1,4 @@
-# HEART: Coordination of Heterogeneous Expert Agents for Physically Grounded Robotic Task Planning
+# HEART: Coordinated Heterogeneous Expert Agents for Physically Grounded Robotic Task Planning
 
 A multi-LLM framework that coordinates role-specialized reasoning agents under a
 token budget to improve robotic task planning.
