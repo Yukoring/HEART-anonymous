@@ -21,6 +21,22 @@ import copy
 import re
 
 
+# Per-arm figures arrive in metres; the rest of the robot reaches the agents in
+# centimetres, so these are converted and renamed the same way.
+_ARM_CM = {"max_reach": "max_reach_cm", "reach_height": "reach_height_cm",
+           "gripper_opening": "gripper_max_opening_cm"}
+
+
+def _arm_metrics(limits: Dict[str, Any]) -> Dict[str, Any]:
+    out = {}
+    for key, value in limits.items():
+        if key in _ARM_CM:
+            out[_ARM_CM[key]] = round(value * 100, 2)
+        else:
+            out[key] = value
+    return out
+
+
 def filter_data_for_agent(agent_type: str, env_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Filter environment data based on agent type.
@@ -336,7 +352,16 @@ def _filter_for_feasibility(env_data: Dict[str, Any]) -> Dict[str, Any]:
                                     robot_metrics["arm_dof"] = arm["degrees_of_freedom"]
                                 if arm.get("num_arms") is not None:
                                     robot_metrics["num_arms"] = arm["num_arms"]
-                        
+                                # Per-arm limits, present only when the robot
+                                # was described arm by arm. Without them the
+                                # agent can say the robot reaches an object but
+                                # not which arm does.
+                                per_arm = arm.get("arms")
+                                if per_arm:
+                                    robot_metrics["arms"] = {
+                                        name: _arm_metrics(limits)
+                                        for name, limits in per_arm.items()}
+
                         # Base specs  
                         if "base" in urdf_specs:
                             base = urdf_specs["base"]

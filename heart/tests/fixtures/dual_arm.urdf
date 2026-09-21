@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<robot name="test_humanoid">
+  <link name="base_link"/><link name="torso_link"/>
+  <joint name="torso_fixed" type="fixed"><parent link="base_link"/><child link="torso_link"/><origin xyz="0 0 0.8" rpy="0 0 0"/></joint>
+
+  <link name="left_shoulder_link"/><link name="left_upper_arm_link"/><link name="left_forearm_link"/><link name="left_gripper_link"/>
+  <joint name="left_shoulder_pan" type="revolute"><parent link="torso_link"/><child link="left_shoulder_link"/>
+    <origin xyz="0 0.2 0.5" rpy="0 0 0"/><axis xyz="0 0 1"/><limit lower="-1.57" upper="1.57" effort="50" velocity="1"/></joint>
+  <joint name="left_shoulder_lift" type="revolute"><parent link="left_shoulder_link"/><child link="left_upper_arm_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/><axis xyz="0 1 0"/><limit lower="-1.57" upper="1.57" effort="50" velocity="1"/></joint>
+  <joint name="left_elbow" type="revolute"><parent link="left_upper_arm_link"/><child link="left_forearm_link"/>
+    <origin xyz="0.4 0 0" rpy="0 0 0"/><axis xyz="0 1 0"/><limit lower="-2.0" upper="2.0" effort="30" velocity="1"/></joint>
+  <joint name="left_wrist" type="revolute"><parent link="left_forearm_link"/><child link="left_gripper_link"/>
+    <origin xyz="0.35 0 0" rpy="0 0 0"/><axis xyz="1 0 0"/><limit lower="-3.14" upper="3.14" effort="10" velocity="1"/></joint>
+
+  <link name="right_shoulder_link"/><link name="right_upper_arm_link"/><link name="right_forearm_link"/><link name="right_gripper_link"/>
+  <joint name="right_shoulder_pan" type="revolute"><parent link="torso_link"/><child link="right_shoulder_link"/>
+    <origin xyz="0 -0.2 0.5" rpy="0 0 0"/><axis xyz="0 0 1"/><limit lower="-1.57" upper="1.57" effort="50" velocity="1"/></joint>
+  <joint name="right_shoulder_lift" type="revolute"><parent link="right_shoulder_link"/><child link="right_upper_arm_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/><axis xyz="0 1 0"/><limit lower="-1.57" upper="1.57" effort="50" velocity="1"/></joint>
+  <joint name="right_elbow" type="revolute"><parent link="right_upper_arm_link"/><child link="right_forearm_link"/>
+    <origin xyz="0.3 0 0" rpy="0 0 0"/><axis xyz="0 1 0"/><limit lower="-2.0" upper="2.0" effort="30" velocity="1"/></joint>
+  <joint name="right_wrist" type="revolute"><parent link="right_forearm_link"/><child link="right_gripper_link"/>
+    <origin xyz="0.25 0 0" rpy="0 0 0"/><axis xyz="1 0 0"/><limit lower="-3.14" upper="3.14" effort="10" velocity="1"/></joint>
+</robot>

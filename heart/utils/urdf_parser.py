@@ -694,6 +694,77 @@ def parse_urdf_to_specs(urdf_path: str) -> Dict[str, Any]:
     }
     return specs
 
+_SIDE_PATTERNS = {
+    "left": re.compile(r"(left|(^|[_\-])l([_\-]|$))", re.I),
+    "right": re.compile(r"(right|(^|[_\-])r([_\-]|$))", re.I),
+}
+
+# Joints that carry a side in their name without belonging to an arm: wheels
+# on a mobile base, fingers of a single gripper. Without this a one-armed
+# mobile manipulator reads as two arms, one per wheel.
+_NOT_ARM = re.compile(r"wheel|caster|finger|knuckle|tip|gripper|rotor|prop", re.I)
+
+# An arm needs at least this many of its own joints; one joint is a hinge.
+_MIN_ARM_DOF = 2
+
+
+def _arm_dof(model: URDFModel, path, pattern) -> int:
+    """Movable joints on `path` that belong to the side's arm."""
+    return sum(1 for child, jn in path
+               if model.joints[jn].attrib.get("type") != "fixed"
+               and pattern.search(child)
+               and not _NOT_ARM.search(jn))
+
+
+def _side_chain(model: URDFModel, pattern) -> List[Tuple[str, str]]:
+    """
+    Longest movable chain from the base whose links belong to one side.
+
+    `_arm_chain` returns the single longest chain in the robot, which on a
+    two-armed body is whichever arm happens to have more joints. Restricting
+    the search to leaf paths that pass through a link named for one side gives
+    each arm its own chain, and so its own workspace.
+    """
+    base = model.choose_base()
+    best, best_dof = [], 0
+    stack = [(base, [])]
+    while stack:
+        node, path = stack.pop()
+        children = model.children.get(node, [])
+        if children:
+            for child, jn in children:
+                stack.append((child, path + [(child, jn)]))
+            continue
+        dof = _arm_dof(model, path, pattern)
+        if dof > best_dof:
+            best, best_dof = path[:], dof
+    return best
+
+
+def arm_workspaces(urdf_path: str) -> Dict[str, Dict[str, Any]]:
+    """
+    Reach and height per arm, for robots whose arms are named left and right.
+
+    Returns {} when the URDF does not name its arms by side, so the caller can
+    fall back to the single-arm figures in `parse_urdf_to_specs`. Nothing here
+    changes what `parse_urdf_to_specs` reports; this is read only by callers
+    that ask for per-arm limits.
+    """
+    with open(urdf_path, "r") as f:
+        root = ET.fromstring(f.read())
+    model = URDFModel(_strip_ns(root))
+    arms = {}
+    for side, pattern in _SIDE_PATTERNS.items():
+        chain = _side_chain(model, pattern)
+        dof = _arm_dof(model, chain, pattern)
+        if dof < _MIN_ARM_DOF:
+            continue
+        reach, height = _workspace(model, chain)
+        arms[side] = {"max_reach": reach, "reach_height": height,
+                      "degrees_of_freedom": dof}
+    return arms if len(arms) > 1 else {}
+
+
 def get_robot_summary(urdf_path: str) -> Dict[str, Any]:
     full = parse_urdf_to_specs(urdf_path)
     return {
